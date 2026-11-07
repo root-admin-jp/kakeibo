@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { yen, currentMonth } from '../composables/useApi'
+import { yen, currentMonth } from '../app/composables/useApi'
 
 describe('yen (金額フォーマット)', () => {
   it('カンマ区切りで ¥ を付ける', () => {

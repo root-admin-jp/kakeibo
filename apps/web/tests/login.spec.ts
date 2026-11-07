@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
-import LoginPage from '../pages/login.vue'
+import LoginPage from '../app/pages/login.vue'
 
 // useApi だけモックし、useAuth / ルーティングは実物を使う
 const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))
