@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: kakeibo-api
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:kakeibo}
+    username: ${DB_USER:kakeibo}
+    password: ${DB_PASSWORD:}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration,filesystem:../../db/migration
+server:
+  port: ${API_PORT:8080}
+# JWT等の秘密は環境変数でのみ渡す (ADR-0005)。実値をここに書かない。
+kakeibo:
+  jwt-secret: ${JWT_SECRET:}
