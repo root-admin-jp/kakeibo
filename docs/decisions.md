@@ -17,6 +17,7 @@
 | C | 技術構成 | 提案どおり | API: Spring Boot 3 / Gradle / Flyway + jOOQ / REST + OpenAPI。UI: Nuxt 3 + TypeScript + SSR / Tailwind。当面ローカル開発 (docker-compose)。MVP: ログイン、口座、収支CRUD、カテゴリ、月次ダッシュボード、CSV入出力 ※DBアクセスは後の決定 D で MyBatis に変更 |
 | D | DBアクセス | MyBatis（jOOQでもJdbcTemplateでもなく） | 2026-11-07に本人が「JOOQではなく、mybatisを使って」と指示。mybatis-spring-boot-starter 3.0.3、SQLはXML Mapper。詳細は ADR-0009（ADR-0008 は Superseded） |
 | E | 設計書 | 専用リポジトリ `t-nozue-v2/kakeibo-docs`（Private）へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
+| F | Spring Boot バージョン | 3.5.16（3.5系最新）へアップグレード | 2026-11-07、Snyk 初回スキャンの API 68件（CRITICAL 16 / HIGH 52）を受けて本人が承認。Boot 4 は変更幅が大きいため見送り。詳細は ADR-0011 |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 
