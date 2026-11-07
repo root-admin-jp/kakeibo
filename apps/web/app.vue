@@ -1,6 +1,5 @@
 <template>
-  <div>
-    <header><h1>Kakeibo</h1></header>
+  <NuxtLayout>
     <NuxtPage />
-  </div>
+  </NuxtLayout>
 </template>

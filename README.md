@@ -25,6 +25,6 @@
 ## ローカル開発（予定）
 1. `.env.example` をコピーして `.env` を作る（実値はコミットしない）。
 2. `docker compose -f infra/docker-compose.yml up -d` で MySQL 8 を起動。
-3. API / Web の起動手順はビルド検証後に追記する。
+3. API / Web ともに Phase 1 実装済み。起動手順は各アプリの README を参照。ビルド検証は GitHub Actions (CI) で行う。
 
 クレデンシャルはコミットしない（ADR-0005）。
