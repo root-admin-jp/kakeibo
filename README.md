@@ -47,6 +47,14 @@
 - E2E（`e2e.yml`）: Playwright 8 シナリオ（実 MySQL + API + Web で実行）
 - 脆弱性: Snyk（`snyk.yml`、high 以上で fail、週次スキャン併用）、Dependabot（週次更新 PR）
 
+## コンテナイメージ（GHCR）
+GitHub でリリースを作成（publish）すると、API / Web のイメージが GitHub Container Registry へ自動発行される（`.github/workflows/release-images.yml`、手動実行も可）。
+
+- `ghcr.io/root-admin-jp/kakeibo-api:<リリースタグ>` / `:latest`
+- `ghcr.io/root-admin-jp/kakeibo-web:<リリースタグ>` / `:latest`
+
+API イメージは Flyway の DDL を同梱し、`DB_HOST` / `DB_PASSWORD` / `JWT_SECRET` 等の環境変数で接続先を指定する。Web イメージの API 接続先は `NUXT_PUBLIC_API_BASE` で実行時に差し替えできる。
+
 ## 開発の進め方
 `main` への変更は Pull Request 経由とし、レビューは Muse が担当する。流れと観点は `docs/development-workflow.md` を参照。
 
