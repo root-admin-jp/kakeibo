@@ -5,7 +5,7 @@ import org.apache.ibatis.annotations.Param
 import java.time.LocalDate
 
 /**
- * MyBatis Mapper (ADR-0009)。SQL本体は src/main/resources/mapper/*.xml。
+ * MyBatis Mapper (ADR-0009)。SQL本体は resources の mapper ディレクトリの XML に置く。
  * メソッド名 = XMLのステートメントID、namespace = このインターフェースのFQN。
  * スカラ引数には @Param を付け、Kotlinの引数名に依存しないようにする。
  * INSERTはRowオブジェクトを渡し、生成キーは useGeneratedKeys で Row.id に書き戻す。
