@@ -99,12 +99,12 @@ CREATE TABLE IF NOT EXISTS budgets (
   id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   household_id BIGINT UNSIGNED NOT NULL,
   category_id  BIGINT UNSIGNED NOT NULL,
-  year_month   CHAR(7) NOT NULL,
+  target_month   CHAR(7) NOT NULL,
   amount       BIGINT NOT NULL,
   created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_budgets (household_id, category_id, year_month),
+  UNIQUE KEY uq_budgets (household_id, category_id, target_month),
   CONSTRAINT fk_budgets_household FOREIGN KEY (household_id) REFERENCES households (id),
   CONSTRAINT fk_budgets_category  FOREIGN KEY (category_id)  REFERENCES categories (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
