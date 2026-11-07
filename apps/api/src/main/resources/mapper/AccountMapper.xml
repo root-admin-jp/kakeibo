@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.AccountMapper">
+
+  <select id="listByHousehold" resultType="jp.kakeibo.api.db.AccountRow">
+    SELECT a.id, a.household_id, a.institution_id, a.name, a.kind,
+      COALESCE(SUM(CASE
+        WHEN t.type = 'income' AND t.account_id = a.id THEN t.amount
+        WHEN t.type = 'expense' AND t.account_id = a.id THEN -t.amount
+        WHEN t.type = 'transfer' AND t.account_id = a.id THEN -t.amount
+        WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN t.amount
+        ELSE 0 END), 0) AS balance
+    FROM accounts a
+    LEFT JOIN transactions t ON (t.account_id = a.id OR t.to_account_id = a.id) AND t.deleted_at IS NULL
+    WHERE a.household_id = #{householdId}
+    GROUP BY a.id, a.household_id, a.institution_id, a.name, a.kind
+    ORDER BY a.id
+  </select>
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.AccountRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO accounts (household_id, institution_id, name, kind)
+    VALUES (#{householdId}, #{institutionId}, #{name}, #{kind})
+  </insert>
+
+  <update id="update">
+    UPDATE accounts SET institution_id = #{institutionId}, name = #{name}, kind = #{kind}
+    WHERE household_id = #{householdId} AND id = #{id}
+  </update>
+
+  <select id="countTransactions" resultType="int">
+    SELECT COUNT(*) FROM transactions
+    WHERE (account_id = #{id} OR to_account_id = #{id}) AND deleted_at IS NULL
+  </select>
+
+  <delete id="delete">
+    DELETE FROM accounts WHERE household_id = #{householdId} AND id = #{id}
+  </delete>
+
+</mapper>

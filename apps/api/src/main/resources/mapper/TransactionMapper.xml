@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.TransactionMapper">
+
+  <select id="list" resultType="jp.kakeibo.api.db.TransactionRow">
+    SELECT * FROM transactions
+    <where>
+      household_id = #{householdId} AND deleted_at IS NULL
+      AND transacted_on BETWEEN #{from} AND #{to}
+      <if test="accountId != null">
+        AND (account_id = #{accountId} OR to_account_id = #{accountId})
+      </if>
+      <if test="categoryId != null">
+        AND category_id = #{categoryId}
+      </if>
+    </where>
+    ORDER BY transacted_on DESC, id DESC
+  </select>
+
+  <select id="findById" resultType="jp.kakeibo.api.db.TransactionRow">
+    SELECT * FROM transactions
+    WHERE household_id = #{householdId} AND id = #{id} AND deleted_at IS NULL
+  </select>
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.TransactionRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO transactions (household_id, account_id, to_account_id, category_id, type, amount, transacted_on, memo)
+    VALUES (#{householdId}, #{accountId}, #{toAccountId}, #{categoryId}, #{type}, #{amount}, #{transactedOn}, #{memo})
+  </insert>
+
+  <update id="update">
+    UPDATE transactions
+    SET account_id = #{accountId}, to_account_id = #{toAccountId}, category_id = #{categoryId},
+        type = #{type}, amount = #{amount}, transacted_on = #{transactedOn}, memo = #{memo}
+    WHERE household_id = #{householdId} AND id = #{id} AND deleted_at IS NULL
+  </update>
+
+  <update id="softDelete">
+    UPDATE transactions SET deleted_at = CURRENT_TIMESTAMP
+    WHERE household_id = #{householdId} AND id = #{id} AND deleted_at IS NULL
+  </update>
+
+  <select id="sumAmountByType" resultType="long">
+    SELECT COALESCE(SUM(amount), 0) FROM transactions
+    WHERE household_id = #{householdId} AND deleted_at IS NULL AND type = #{type}
+      AND transacted_on BETWEEN #{from} AND #{to}
+  </select>
+
+  <select id="totalsByTopCategory" resultType="jp.kakeibo.api.db.CategoryTotalRow">
+    SELECT COALESCE(parent.name, cat.name, '未分類') AS top_name, SUM(t.amount) AS total
+    FROM transactions t
+    LEFT JOIN categories cat ON cat.id = t.category_id
+    LEFT JOIN categories parent ON parent.id = cat.parent_id
+    WHERE t.household_id = #{householdId} AND t.deleted_at IS NULL AND t.type = #{type}
+      AND t.transacted_on BETWEEN #{from} AND #{to}
+    GROUP BY top_name ORDER BY total DESC
+  </select>
+
+</mapper>

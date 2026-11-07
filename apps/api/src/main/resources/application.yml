@@ -9,6 +9,11 @@ spring:
     enabled: true
     locations: filesystem:../../db/migration
     baseline-on-migrate: true
+# DBアクセスは MyBatis (ADR-0009)。SQLは src/main/resources/mapper/*.xml に置く。
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 server:
   port: ${API_PORT:8080}
 springdoc:

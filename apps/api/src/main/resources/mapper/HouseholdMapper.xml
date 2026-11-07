@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.HouseholdMapper">
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.HouseholdRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO households (owner_user_id, name) VALUES (#{ownerUserId}, #{name})
+  </insert>
+
+  <select id="findIdByOwner" resultType="long">
+    SELECT id FROM households WHERE owner_user_id = #{ownerUserId}
+  </select>
+
+</mapper>

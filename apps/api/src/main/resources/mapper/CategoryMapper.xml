@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.CategoryMapper">
+
+  <select id="listByHousehold" resultType="jp.kakeibo.api.db.CategoryRow">
+    SELECT id, household_id, parent_id, name, sort_order FROM categories
+    WHERE household_id = #{householdId} ORDER BY sort_order, id
+  </select>
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.CategoryRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO categories (household_id, parent_id, name, sort_order)
+    VALUES (#{householdId}, #{parentId}, #{name}, #{sortOrder})
+  </insert>
+
+  <delete id="delete">
+    DELETE FROM categories WHERE household_id = #{householdId} AND id = #{id}
+  </delete>
+
+</mapper>

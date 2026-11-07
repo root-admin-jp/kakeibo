@@ -14,7 +14,8 @@
 | B2 | 認証 | メール + パスワード | パスワードはハッシュのみ保存 |
 | B3 | 共有・招待 | 不要 | 家族共有・招待機能は作らない。各ユーザーは自分のデータだけを持つ |
 | B4 | 通貨・言語 | 日本円 (JPY)、日本語のみ | |
-| C | 技術構成 | 提案どおり | API: Spring Boot 3 / Gradle / Flyway + jOOQ / REST + OpenAPI。UI: Nuxt 3 + TypeScript + SSR / Tailwind。当面ローカル開発 (docker-compose)。MVP: ログイン、口座、収支CRUD、カテゴリ、月次ダッシュボード、CSV入出力 |
+| C | 技術構成 | 提案どおり | API: Spring Boot 3 / Gradle / Flyway + jOOQ / REST + OpenAPI。UI: Nuxt 3 + TypeScript + SSR / Tailwind。当面ローカル開発 (docker-compose)。MVP: ログイン、口座、収支CRUD、カテゴリ、月次ダッシュボード、CSV入出力 ※DBアクセスは後の決定 D で MyBatis に変更 |
+| D | DBアクセス | MyBatis（jOOQでもJdbcTemplateでもなく） | 2026-11-07に本人が「JOOQではなく、mybatisを使って」と指示。mybatis-spring-boot-starter 3.0.3、SQLはXML Mapper。詳細は ADR-0009（ADR-0008 は Superseded） |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 
