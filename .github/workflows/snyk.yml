@@ -1,0 +1,93 @@
+name: Snyk vulnerability scan
+
+# 依存関係の脆弱性チェック (Snyk)。
+# 事前にリポジトリ Secret `SNYK_TOKEN` の登録が必要（Snykアカウントの API Token）。
+# トークン未登録のうちはスキャンをスキップして緑のままにする（登録した push から有効になる）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 1' # 毎週月曜 09:00 JST（新規公開された脆弱性の棚卸し）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snyk-web:
+    name: Snyk (Web / npm)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check SNYK_TOKEN
+        id: token
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "::notice::SNYK_TOKEN が未登録のため Snyk スキャンをスキップします"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        if: steps.token.outputs.present == 'true'
+        working-directory: apps/web
+        run: npm install
+      - uses: snyk/actions/setup@master
+        if: steps.token.outputs.present == 'true'
+      - name: Snyk test (Web)
+        if: steps.token.outputs.present == 'true'
+        working-directory: apps/web
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --severity-threshold=high
+      - name: Snyk monitor (Web, main への push 時)
+        if: steps.token.outputs.present == 'true' && github.event_name == 'push'
+        working-directory: apps/web
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk monitor
+
+  snyk-api:
+    name: Snyk (API / Gradle)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check SNYK_TOKEN
+        id: token
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "::notice::SNYK_TOKEN が未登録のため Snyk スキャンをスキップします"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-java@v4
+        if: steps.token.outputs.present == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.token.outputs.present == 'true'
+      - uses: snyk/actions/setup@master
+        if: steps.token.outputs.present == 'true'
+      - name: Snyk test (API)
+        if: steps.token.outputs.present == 'true'
+        working-directory: apps/api
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk test --severity-threshold=high
+      - name: Snyk monitor (API, main への push 時)
+        if: steps.token.outputs.present == 'true' && github.event_name == 'push'
+        working-directory: apps/api
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk monitor
