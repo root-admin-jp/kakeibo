@@ -1,0 +1,25 @@
+# ローカル用 MySQL 8（ドラフト・未検証）
+# API / Web サービスは雛形ができ次第ここに追加する。
+# 値は .env から読む。実値はコミットしない（ADR-0005）。
+services:
+  db:
+    image: mysql:8.0
+    container_name: kakeibo-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-changeme-root}
+      MYSQL_DATABASE: ${DB_NAME:-kakeibo}
+      MYSQL_USER: ${DB_USER:-kakeibo}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - kakeibo-db-data:/var/lib/mysql
+      - ../db/migration:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kakeibo-db-data:

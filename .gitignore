@@ -1,0 +1,19 @@
+# クレデンシャル類は絶対にコミットしない（ADR-0005）
+.env
+.env.local
+*.local.yml
+application-local.yml
+application-local.properties
+
+# ビルド成果物・依存関係（雛形ができ次第、言語別に追加）
+node_modules/
+.nuxt/
+.output/
+build/
+.gradle/
+*.log
+
+# OS / エディタ
+.DS_Store
+.idea/
+.vscode/
