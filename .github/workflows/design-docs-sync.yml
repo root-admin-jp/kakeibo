@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout kakeibo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           path: kakeibo
 
@@ -29,7 +29,7 @@ jobs:
             --source kakeibo --out generated --commit "$GITHUB_SHA"
 
       - name: Checkout design docs repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: t-nozue-v2/kakeibo-docs
           ssh-key: ${{ secrets.DESIGN_DOCS_DEPLOY_KEY }}
