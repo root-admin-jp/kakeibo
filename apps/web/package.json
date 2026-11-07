@@ -6,7 +6,9 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "generate": "nuxt generate"
+    "generate": "nuxt generate",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "nuxt": "^3.13.0",
@@ -14,7 +16,12 @@
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^3.23.0",
     "@nuxtjs/tailwindcss": "^6.12.0",
-    "typescript": "^5.6.0"
+    "@playwright/test": "^1.49.1",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^18.0.1",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.7"
   }
 }

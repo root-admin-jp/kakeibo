@@ -26,8 +26,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Web build (Nuxt)
+      - name: Web unit test + build (Nuxt)
         working-directory: apps/web
         run: |
           npm install
+          npm run test:unit
           npm run build
