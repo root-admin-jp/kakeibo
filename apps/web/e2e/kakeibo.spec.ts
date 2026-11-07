@@ -104,7 +104,7 @@ test.describe.serial('Kakeibo E2E', () => {
     ])
     expect(download.suggestedFilename()).toBe(`kakeibo-${thisMonth}.csv`)
     const content = readFileSync(await download.path(), 'utf-8')
-    expect(content).toContain('日付,収支種別,金額,大項目,中項目,内容')
+    expect(content).toContain('"日付","収支種別","金額","大項目","中項目","内容"') // OpenCSV が全フィールドを引用符付きで出す
     expect(content).toContain(memo) // 画面から追加した支出
     expect(content).toContain(csvMemo) // CSV取り込みした支出
   })
