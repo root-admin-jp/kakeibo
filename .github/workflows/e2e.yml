@@ -1,0 +1,92 @@
+name: E2E
+
+# 実MySQL + 実API + 実Web を起動して Playwright で通し確認する。
+# 通常の CI (ci.yml) とは分離し、こちらはフルスタックの起動が前提。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: kakeibo
+          MYSQL_USER: kakeibo
+          MYSQL_PASSWORD: kakeibo
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -uroot -prootpw"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Start API (bootRun)
+        working-directory: apps/api
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_NAME: kakeibo
+          DB_USER: kakeibo
+          DB_PASSWORD: kakeibo
+          JWT_SECRET: e2e-secret-e2e-secret-e2e-secret-0123456789
+          API_PORT: 8080
+        run: |
+          nohup gradle bootRun --console=plain > /tmp/api.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/v3/api-docs > /dev/null; then echo "API up"; exit 0; fi
+            sleep 5
+          done
+          echo "API did not start"; tail -100 /tmp/api.log; exit 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build and start Web (preview)
+        working-directory: apps/web
+        env:
+          NUXT_PUBLIC_API_BASE: http://localhost:8080
+        run: |
+          npm install
+          npm run build
+          nohup npm run preview -- --port 3000 > /tmp/web.log 2>&1 &
+          for i in $(seq 1 36); do
+            if curl -sf http://localhost:3000/login > /dev/null; then echo "Web up"; exit 0; fi
+            sleep 5
+          done
+          echo "Web did not start"; tail -100 /tmp/web.log; exit 1
+
+      - name: Install Playwright (Chromium)
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        working-directory: apps/web
+        run: npm run test:e2e
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+            /tmp/api.log
+            /tmp/web.log
+          if-no-files-found: ignore
