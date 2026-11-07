@@ -28,7 +28,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     // Mapper の対MySQLテスト用 (CI の Docker 上で実行する)
     testImplementation("org.testcontainers:mysql:1.21.3")
-    testImplementation("org.testcontainers:junit-jupiter:1.21.3")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
 }
 tasks.withType<Test> {
     useJUnitPlatform()
