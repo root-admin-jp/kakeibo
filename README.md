@@ -11,7 +11,7 @@
 
 | 区分 | 技術 |
 |---|---|
-| API | Kotlin / Spring Boot 3.5.16 / Gradle / Flyway + MyBatis / REST + OpenAPI |
+| API | Kotlin / Spring Boot 4.1.2 / Gradle / Flyway + MyBatis / REST + OpenAPI |
 | DB | MySQL 8 |
 | Web | Nuxt 4.6.4 / TypeScript / SSR / Tailwind CSS |
 | 認証 | メール + パスワード（JWT） |
