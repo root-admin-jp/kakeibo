@@ -17,5 +17,5 @@ npm run preview    # ビルドのプレビュー
 ## テスト
 ```
 npm run test:unit  # Vitest + @nuxt/test-utils（13件、tests/）
-npm run test:e2e   # Playwright（6シナリオ、e2e/。実API+MySQLが必要）
+npm run test:e2e   # Playwright（8シナリオ、e2e/。実API+MySQLが必要）
 ```
