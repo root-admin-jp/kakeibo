@@ -113,8 +113,7 @@ class CsvController(
                     skipped++; errors.add("${lineNo}行目: ${e.message}")
                 }
             }
-            importJobs.insert(user.householdId, accountId, "done", imported, errors.takeIf { it.isNotEmpty() }?.joinToString("
-")?.take(1000))
+            importJobs.insert(user.householdId, accountId, "done", imported, errors.takeIf { it.isNotEmpty() }?.joinToString("\n")?.take(1000))
         } catch (e: Exception) {
             importJobs.insert(user.householdId, accountId, "failed", imported, e.message?.take(1000))
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "CSVの読み込みに失敗しました: ${e.message}")
