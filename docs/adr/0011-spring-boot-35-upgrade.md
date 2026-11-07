@@ -25,3 +25,18 @@ API の Spring Boot を 3.3.5 → **3.5.16**（3.5 系最新）へ上げる。�
 - 検証は全テスト（API単体・結合 39 件）＋ E2E ＋ Snyk 再スキャンで担保する。
 - 今後も Dependabot の週次 PR と Snyk の週次スキャンで追随する。
 - Boot 4.x への移行は別途判断する（Jackson 3 のグループ ID 変更等を含むため）。
+
+## 追記 (2026-11-07): パッチ版の上書き指定
+3.5.16 適用後の再スキャンで 68 件 → 30 件に減ったが、残件のうち Boot の BOM より
+新しいパッチが存在するものについては、本人の承認で `dependencyManagement` による
+上書き指定を追加した（build.gradle.kts）。
+
+- jackson-bom 2.21.8（BOM ごと差し替え）
+- tomcat-embed (core/websocket/el) 10.1.61
+- logback (classic/core) 1.5.38
+- commons-lang3 3.21.0 / commons-compress 1.28.0
+- swagger-core-jakarta 2.2.55
+
+Spring Framework 6.2.19 / Spring Security 6.5.11 は各ライン内の最新が現行版そのもの
+であり、上書きでは解消できない（修正は Framework 7 / Security 7、つまり Boot 4 のみ）。
+上書きはパッチレベルに限定し、Boot を更新する際に必要性を再評価する。
