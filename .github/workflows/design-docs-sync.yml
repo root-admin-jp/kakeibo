@@ -1,0 +1,50 @@
+name: Sync design docs
+
+# kakeibo の main が更新されるたびに、設計書リポジトリ (t-nozue-v2/kakeibo-docs) を
+# ソースから再生成して最新化する。設計書は手書きせず、生成元（DDL・コード・本体文書）を直すこと。
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: design-docs-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kakeibo
+        uses: actions/checkout@v4
+        with:
+          path: kakeibo
+
+      - name: Generate design docs
+        run: |
+          python3 kakeibo/tools/design-docs/generate.py \
+            --source kakeibo --out generated --commit "$GITHUB_SHA"
+
+      - name: Checkout design docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: t-nozue-v2/kakeibo-docs
+          ssh-key: ${{ secrets.DESIGN_DOCS_DEPLOY_KEY }}
+          path: docs-repo
+
+      - name: Sync and push if changed
+        run: |
+          rsync -a --delete --exclude .git generated/ docs-repo/
+          cd docs-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "設計書に変更なし。pushしません。"
+          else
+            git commit -m "docs: sync design docs from kakeibo@${GITHUB_SHA::7}"
+            git push
+          fi
