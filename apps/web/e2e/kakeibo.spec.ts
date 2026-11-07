@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 
 // 実API + 実DB を相手にする E2E。ユーザー登録から日常操作の一巡と、
 // 再ログイン後もデータが見えることまでを通しで確認する。
@@ -8,8 +9,11 @@ const password = 'password123'
 const displayName = 'E2E太郎'
 const accountName = `E2E銀行口座${stamp}`
 const memo = `E2Eスーパー買い物${stamp}`
+const csvMemo = `E2E CSV取込${stamp}`
 const today = new Date()
 const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+const todaySlash = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`
+const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
 
 test.describe.serial('Kakeibo E2E', () => {
   test('未ログインではログイン画面へリダイレクトされる', async ({ page }) => {
@@ -77,6 +81,32 @@ test.describe.serial('Kakeibo E2E', () => {
     await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
     await page.goto('/transactions')
     await expect(page.getByText(memo)).toBeVisible()
+  })
+
+  test('CSV取り込みで取引が増える', async ({ page }) => {
+    await login(page)
+    await page.goto('/transactions')
+    // 取り込み先口座を明示的に選んでから MF形式CSV をアップロードする
+    await page.locator('label', { hasText: 'CSVインポート先口座' }).locator('select').selectOption({ label: accountName })
+    const csv = ['日付,収支種別,金額,大項目,中項目,内容', `${todaySlash},支出,345,食費,食料品,${csvMemo}`].join('\n')
+    await page.locator('input[type="file"]').setInputFiles({ name: 'import.csv', mimeType: 'text/csv', buffer: Buffer.from(csv, 'utf-8') })
+    await expect(page.getByText('取り込み完了: 1件、スキップ 0件')).toBeVisible()
+    await expect(page.getByText(csvMemo)).toBeVisible()
+    await expect(page.getByText('¥345')).toBeVisible()
+  })
+
+  test('CSVエクスポートで今月の取引がダウンロードできる', async ({ page }) => {
+    await login(page)
+    await page.goto('/transactions')
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'CSVエクスポート' }).click(),
+    ])
+    expect(download.suggestedFilename()).toBe(`kakeibo-${thisMonth}.csv`)
+    const content = readFileSync(await download.path(), 'utf-8')
+    expect(content).toContain('"日付","収支種別","金額","大項目","中項目","内容"') // OpenCSV が全フィールドを引用符付きで出す
+    expect(content).toContain(memo) // 画面から追加した支出
+    expect(content).toContain(csvMemo) // CSV取り込みした支出
   })
 })
 
