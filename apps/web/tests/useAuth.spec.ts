@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useAuth } from '../composables/useAuth'
+import { useAuth } from '../app/composables/useAuth'
 
 describe('useAuth', () => {
   beforeEach(() => {

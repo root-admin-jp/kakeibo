@@ -144,7 +144,7 @@ def parse_controllers(api_src: Path):
 
 def parse_screens(web_root: Path):
     screens = []
-    pages = web_root / "pages"
+    pages = web_root / "app" / "pages"
     for f in sorted(pages.glob("*.vue")):
         text = f.read_text(encoding="utf-8")
         route = "/" if f.stem == "index" else f"/{f.stem}"
@@ -167,7 +167,7 @@ def parse_screens(web_root: Path):
         inputs = sorted(set(inputs))
         selects = len(re.findall(r"<select", text))
         textareas = len(re.findall(r"<textarea", text))
-        screens.append(dict(route=route, name=name, file=f"apps/web/pages/{f.name}",
+        screens.append(dict(route=route, name=name, file=f"apps/web/app/pages/{f.name}",
                             sections=sections, apis=apis, inputs=inputs,
                             selects=selects, textareas=textareas))
     return screens
@@ -269,7 +269,7 @@ def gen_api(groups):
 
 def gen_screens(screens):
     lines = ["# 画面定義書", "",
-             "生成元: `apps/web/pages/*.vue`。共通レイアウト（ヘッダーナビ）は `apps/web/layouts/default.vue`。未ログイン時はログイン画面へ誘導する。",
+             "生成元: `apps/web/app/pages/*.vue`。共通レイアウト（ヘッダーナビ）は `apps/web/app/layouts/default.vue`。未ログイン時はログイン画面へ誘導する。",
              "", "## 画面一覧", "", "| ルート | 画面名 | 画面ファイル | 主なセクション | 利用API |",
              "|---|---|---|---|---|"]
     for s in screens:

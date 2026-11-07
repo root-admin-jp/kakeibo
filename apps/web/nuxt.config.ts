@@ -8,5 +8,5 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080',
     },
   },
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-07-15',
 })

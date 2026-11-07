@@ -18,6 +18,7 @@
 | D | DBアクセス | MyBatis（jOOQでもJdbcTemplateでもなく） | 2026-11-07に本人が「JOOQではなく、mybatisを使って」と指示。mybatis-spring-boot-starter 3.0.3、SQLはXML Mapper。詳細は ADR-0009（ADR-0008 は Superseded） |
 | E | 設計書 | 専用リポジトリ `root-admin-jp/kakeibo-docs`（Private）へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
 | F | Spring Boot バージョン | 3.5.16（3.5系最新）へアップグレード | 2026-11-07、Snyk 初回スキャンの API 68件（CRITICAL 16 / HIGH 52）を受けて本人が承認。Boot 4 は変更幅が大きいため見送り。詳細は ADR-0011 |
+| G | Nuxt バージョン | 4.6.4 へ移行（app/ 構成へ移動） | 2026-11-07、Nuxt 3 が EOL（2026-07-31）でセキュリティ修正が来ないことと Snyk Web HIGH 3件を受けて本人が承認。ブランチで検証してからマージ。詳細は ADR-0012 |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 
