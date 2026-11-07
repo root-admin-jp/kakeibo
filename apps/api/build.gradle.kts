@@ -30,4 +30,12 @@ dependencies {
     testImplementation("org.testcontainers:mysql:1.20.4")
     testImplementation("org.testcontainers:junit-jupiter:1.20.4")
 }
-tasks.withType<Test> { useJUnitPlatform() }
+tasks.withType<Test> {
+    useJUnitPlatform()
+    // 失敗時に例外メッセージまでコンソールに出す（CIログで原因を追えるように）
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        events("failed")
+        showStandardStreams = true
+    }
+}
