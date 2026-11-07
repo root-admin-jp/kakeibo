@@ -44,7 +44,7 @@
 
 ## テストと品質チェック
 - CI（`.github/workflows/ci.yml`）: API 単体・結合テスト 39 件、Web 単体テスト 13 件＋ビルド
-- E2E（`e2e.yml`）: Playwright 6 シナリオ（実 MySQL + API + Web で実行）
+- E2E（`e2e.yml`）: Playwright 8 シナリオ（実 MySQL + API + Web で実行）
 - 脆弱性: Snyk（`snyk.yml`、high 以上で fail、週次スキャン併用）、Dependabot（週次更新 PR）
 
 ## 開発の進め方
