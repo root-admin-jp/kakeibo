@@ -12,6 +12,16 @@ repositories { mavenCentral() }
 // Boot 3.5 時代の Snyk 暫定パッチ上書き (ADR-0011 追記) は Boot 4.1.2 への移行 (ADR-0013) で
 // 不要になったため撤去した。Boot 4 の BOM が管理する版（Framework 7 / Security 7 /
 // Jackson 3 / Tomcat 11 等）に委ねる。上書きが必要になった場合は理由を ADR に残すこと。
+//
+// 例外 (ADR-0013 追記): CVE-2026-110879 (Jackson の多態デシリアライゼーション検証バイパス,
+// 2026-10-28 公開) への対応。Boot 4.1.2 の管理版 databind 3.1.7 と、springdoc 経由の
+// Jackson 2 系 databind 2.21.7 が対象のため、修正版を含む BOM へ引き上げる。
+dependencyManagement {
+    imports {
+        mavenBom("tools.jackson:jackson-bom:3.1.8")
+        mavenBom("com.fasterxml.jackson:jackson-bom:2.21.8")
+    }
+}
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-security")

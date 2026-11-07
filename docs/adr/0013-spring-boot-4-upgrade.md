@@ -30,3 +30,13 @@ API の Spring Boot を 3.5.16 → **4.1.2**（4 系安定版の最新）へ上�
 - jjwt-jackson 0.13.0 は Jackson 2 (com.fasterxml) 系に依存する。Jackson 3 (tools.jackson) とは
   パッケージが分かれるため共存可能だが、JWT の往復テストで動作を検証する。
 - Boot 3.5 系へのダウングレードは行わない。
+
+## 追記 (2026-11-07): Jackson の CVE-2026-110879 への対応
+移行後の Snyk 再スキャンで、元の 9 件（Framework / Security 由来）は全て解消した。
+一方で 2026-10-28 公開の CVE-2026-110879（Jackson の多態デシリアライゼーション検証
+バイパス、CRITICAL）が新規に検出された。対象は Boot 4.1.2 管理版の
+tools.jackson.core:jackson-databind 3.1.7 と、springdoc 3.2.0 経由の
+com.fasterxml.jackson.core:jackson-databind 2.21.7。
+当アプリはデフォルトタイピング等を使わないため悪用条件は満たさないが、修正版が
+存在するため `dependencyManagement` で jackson-bom を 3.1.8 / 2.21.8 へ引き上げて対応する。
+Boot が管理版を 3.1.8 以降へ更新したら、この上書きは撤去すること。
