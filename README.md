@@ -10,7 +10,7 @@
 ```
 /
 ├─ apps/
-│  ├─ api/        # Kotlin / Spring Boot 3 / Gradle / Flyway + jOOQ
+│  ├─ api/        # Kotlin / Spring Boot 3 / Gradle / Flyway + MyBatis
 │  └─ web/        # Nuxt 3 / TypeScript / Tailwind
 ├─ db/migration/  # Flyway DDL (V1__init.sql)
 ├─ docs/

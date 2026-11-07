@@ -1,6 +1,6 @@
 # Kakeibo API
 
-Kotlin + Spring Boot 3 / MySQL 8 / Flyway + JdbcTemplate (ADR-0008) / REST + OpenAPI。
+Kotlin + Spring Boot 3 / MySQL 8 / Flyway + MyBatis (ADR-0009、SQLは `src/main/resources/mapper/*.xml`) / REST + OpenAPI。
 
 ## 実装済み (Phase 1)
 - 認証: POST /api/auth/register（ユーザー+テナント+初期カテゴリ作成）, POST /api/auth/login（JWT発行）

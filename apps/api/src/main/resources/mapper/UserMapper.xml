@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.UserMapper">
+
+  <select id="findByEmail" resultType="jp.kakeibo.api.db.UserRow">
+    SELECT id, email, password_hash, display_name FROM users WHERE email = #{email}
+  </select>
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.UserRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO users (email, password_hash, display_name) VALUES (#{email}, #{passwordHash}, #{displayName})
+  </insert>
+
+</mapper>
