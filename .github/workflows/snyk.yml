@@ -19,7 +19,7 @@ jobs:
     name: Snyk (Web / npm)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check SNYK_TOKEN
         id: token
         env:
@@ -58,7 +58,7 @@ jobs:
     name: Snyk (API / Gradle)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check SNYK_TOKEN
         id: token
         env:
