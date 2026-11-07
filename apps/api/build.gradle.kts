@@ -19,6 +19,8 @@ dependencies {
     implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:4.1.0")
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    // Boot 4 から Flyway の自動設定は starter-flyway が必要（モジュール分割の影響）
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-mysql")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
