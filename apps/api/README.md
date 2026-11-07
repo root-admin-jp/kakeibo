@@ -1,6 +1,6 @@
 # Kakeibo API
 
-Kotlin + Spring Boot 3.5.16 (ADR-0011) / MySQL 8 / Flyway + MyBatis (ADR-0009、SQLは `src/main/resources/mapper/*.xml`) / REST + OpenAPI。
+Kotlin + Spring Boot 4.1.2 (ADR-0013) / MySQL 8 / Flyway + MyBatis (ADR-0009、SQLは `src/main/resources/mapper/*.xml`) / REST + OpenAPI。
 
 テストは単体・結合 39 件（Controller 単体、JWT、Testcontainers の実 MySQL による Mapper 結合）。CI (GitHub Actions) で実行する。
 

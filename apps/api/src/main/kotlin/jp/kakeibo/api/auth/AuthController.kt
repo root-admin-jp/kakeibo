@@ -60,7 +60,8 @@ class AuthController(
         if (users.findByEmail(req.email) != null) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "email already registered")
         }
-        val userId = users.insert(req.email, passwordEncoder.encode(req.password), req.displayName)
+        // Spring Security 7 の JSpecify 注釈で encode() の戻り値が String? と解釈される。実際には null を返さない。
+        val userId = users.insert(req.email, requireNotNull(passwordEncoder.encode(req.password)), req.displayName)
         val householdId = households.insert(userId, req.displayName + "の家計")
         var order = 0
         for ((top, children) in DEFAULT_CATEGORIES) {

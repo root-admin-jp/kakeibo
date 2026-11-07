@@ -63,7 +63,7 @@ class AuthControllerTest {
 
     @Test
     fun `login succeeds with correct password`() {
-        val hash = encoder.encode("password123")
+        val hash = requireNotNull(encoder.encode("password123"))
         whenever(users.findByEmail("user@example.com")).thenReturn(UserRow(42, "user@example.com", hash, "名前"))
         whenever(households.findIdByOwner(42)).thenReturn(7L)
 
@@ -75,7 +75,7 @@ class AuthControllerTest {
 
     @Test
     fun `login with wrong password is unauthorized`() {
-        val hash = encoder.encode("password123")
+        val hash = requireNotNull(encoder.encode("password123"))
         whenever(users.findByEmail("user@example.com")).thenReturn(UserRow(42, "user@example.com", hash, "名前"))
         val e = assertFailsWith<ResponseStatusException> {
             controller.login(LoginRequest("user@example.com", "wrong-password"))
