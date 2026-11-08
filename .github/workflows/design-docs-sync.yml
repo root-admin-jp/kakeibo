@@ -1,6 +1,6 @@
 name: Sync design docs
 
-# kakeibo の main が更新されるたびに、設計書リポジトリ (t-nozue-v2/kakeibo-docs) を
+# kakeibo の main が更新されるたびに、設計書リポジトリ (root-admin-jp/kakeibo-docs) を
 # ソースから再生成して最新化する。設計書は手書きせず、生成元（DDL・コード・本体文書）を直すこと。
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
       - name: Checkout design docs repo
         uses: actions/checkout@v7
         with:
-          repository: t-nozue-v2/kakeibo-docs
+          repository: root-admin-jp/kakeibo-docs
           ssh-key: ${{ secrets.DESIGN_DOCS_DEPLOY_KEY }}
           path: docs-repo
 

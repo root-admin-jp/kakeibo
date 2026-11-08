@@ -2,10 +2,10 @@
 
 マネーフォワード風の家計簿Webアプリ。モノレポ構成（UI / API分離）。
 
-- GitHub: `t-nozue-v2/kakeibo`
+- GitHub: `root-admin-jp/kakeibo`
 - アプリ名: Kakeibo / 通貨: JPY / 言語: 日本語
 - 決定事項: `docs/decisions.md` / 要件: `docs/requirements/requirements.md` / ADR: `docs/adr/`
-- 設計書（自動生成）: 別リポジトリ `t-nozue-v2/kakeibo-docs`（テーブル定義書・ER図・API定義書・画面定義書。main 更新のたびに自動同期）
+- 設計書（自動生成）: 別リポジトリ `root-admin-jp/kakeibo-docs`（テーブル定義書・ER図・API定義書・画面定義書。main 更新のたびに自動同期）
 
 ## 技術構成
 
@@ -50,8 +50,8 @@
 ## コンテナイメージ（GHCR）
 GitHub でリリースを作成（publish）すると、API / Web のイメージが GitHub Container Registry へ自動発行される（`.github/workflows/release-images.yml`、手動実行も可）。
 
-- `ghcr.io/t-nozue-v2/kakeibo-api:<リリースタグ>` / `:latest`
-- `ghcr.io/t-nozue-v2/kakeibo-web:<リリースタグ>` / `:latest`
+- `ghcr.io/root-admin-jp/kakeibo-api:<リリースタグ>` / `:latest`
+- `ghcr.io/root-admin-jp/kakeibo-web:<リリースタグ>` / `:latest`
 
 API イメージは Flyway の DDL を同梱し、`DB_HOST` / `DB_PASSWORD` / `JWT_SECRET` 等の環境変数で接続先を指定する。Web イメージの API 接続先は `NUXT_PUBLIC_API_BASE` で実行時に差し替えできる。
 

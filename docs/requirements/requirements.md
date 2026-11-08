@@ -1,7 +1,7 @@
 # Kakeibo 要件定義 v0.2
 
 作成: 2026-11-07 / 状態: 決定事項反映済み（A1-A3, B1-B4, C 確定）
-技術前提: API=Kotlin (Spring Boot 3), DB=MySQL 8, UI=Nuxt 3, UI/API分離 + モノレポ, GitHub `t-nozue-v2/kakeibo`, クレデンシャルはコミットしない, DDL・ADR・要件定義はコミット可
+技術前提: API=Kotlin (Spring Boot 3), DB=MySQL 8, UI=Nuxt 3, UI/API分離 + モノレポ, GitHub `root-admin-jp/kakeibo`, クレデンシャルはコミットしない, DDL・ADR・要件定義はコミット可
 
 ## 1. 目的と利用範囲
 

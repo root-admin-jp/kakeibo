@@ -4,7 +4,7 @@
 
 ## 決定
 設計書（テーブル定義書・ER図・API定義書・画面定義書など）は、専用リポジトリ
-`t-nozue-v2/kakeibo-docs`（Private）に置き、手書きせずソースから自動生成する。
+`root-admin-jp/kakeibo-docs`（Private）に置き、手書きせずソースから自動生成する。
 
 - 生成: `tools/design-docs/generate.py`（Python標準ライブラリのみ）が、DDL・Controller・Nuxt画面・
   本体文書（要件定義・ADR・決定事項）を正として Markdown を生成する。

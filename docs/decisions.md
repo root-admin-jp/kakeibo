@@ -6,7 +6,7 @@
 
 | ID | 項目 | 決定 | 備考 |
 |---|---|---|---|
-| A1 | GitHub | ユーザー名 `t-nozue-v2`、リポジトリ名 `kakeibo` | 2026-11-07に本人が Private を選択（2026-11-08に Public 化方針へ変更、決定J） |
+| A1 | GitHub | ユーザー名 `root-admin-jp`、リポジトリ名 `kakeibo` | 2026-11-07に本人が Private を選択（2026-11-08に Public 化方針へ変更、決定J） |
 | A2 | アプリ名 | `Kakeibo` | |
 | A3 | 利用範囲 | 将来一般公開の可能性あり | マルチユーザー前提、ユーザー間データ分離を最初から設計する |
 | B1 | 金融機関連携対象 | イオン銀行、みずほ銀行、PayPay銀行、SBI証券、モバイルWAON、モバイルSuica、静岡銀行、浜松磐田信用金庫 | PayPay銀行は回答で重複記載があったため1件に統合 |
@@ -16,13 +16,14 @@
 | B4 | 通貨・言語 | 日本円 (JPY)、日本語のみ | |
 | C | 技術構成 | 提案どおり | API: Spring Boot 3 / Gradle / Flyway + jOOQ / REST + OpenAPI。UI: Nuxt 3 + TypeScript + SSR / Tailwind。当面ローカル開発 (docker-compose)。MVP: ログイン、口座、収支CRUD、カテゴリ、月次ダッシュボード、CSV入出力 ※DBアクセスは後の決定 D で MyBatis に変更 |
 | D | DBアクセス | MyBatis（jOOQでもJdbcTemplateでもなく） | 2026-11-07に本人が「JOOQではなく、mybatisを使って」と指示。mybatis-spring-boot-starter 3.0.3、SQLはXML Mapper。詳細は ADR-0009（ADR-0008 は Superseded） |
-| E | 設計書 | 専用リポジトリ `t-nozue-v2/kakeibo-docs` へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
+| E | 設計書 | 専用リポジトリ `root-admin-jp/kakeibo-docs` へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
 | F | Spring Boot バージョン | 3.5.16（3.5系最新）へアップグレード | 2026-11-07、Snyk 初回スキャンの API 68件（CRITICAL 16 / HIGH 52）を受けて本人が承認。Boot 4 は変更幅が大きいため見送り。詳細は ADR-0011 |
 | G | Nuxt バージョン | 4.6.4 へ移行（app/ 構成へ移動） | 2026-11-07、Nuxt 3 が EOL（2026-07-31）でセキュリティ修正が来ないことと Snyk Web HIGH 3件を受けて本人が承認。ブランチで検証してからマージ。詳細は ADR-0012 |
 | H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。main への取り込みは PR 経由必須で、Public 化（決定J）後はルールセットでも機械的に強制している（決定K、kakeibo-docs は例外）。詳細は docs/development-workflow.md |
 | I | Spring Boot バージョン | 4.1.2 へアップグレード | 2026-11-07、Snyk API 残り9件（Framework 6.2 / Security 6.5 由来で Boot 4 でのみ解消可）への対応として本人が指示。ADR-0011 の暫定パッチ上書きは撤去。詳細は ADR-0013 |
 | J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示し、同日3リポジトリを Public 化した。GHCR のイメージ（kakeibo-api / kakeibo-web）も同日 Public 化済み。過去の ADR 等の決定記録は履歴として残す |
 | K | main のルールセット | kakeibo / kakeibo-local の main はルールセットで PR 必須とする（kakeibo は CI の api / web 成功も必須）。承認必須数1とコードオーナーレビュー必須（.github/CODEOWNERS で全ファイルを本人に割当）も設定し、本人以外のアカウントが作った PR は本人の承認なしにマージできない。リポジトリ管理者（本人アカウント）は PR マージ時のみバイパス可（本人が作者の PR は自己承認できないため、このバイパスでマージする）。kakeibo-docs は自動同期の直接 push を守るため PR 必須の対象外とし、削除・force push の禁止のみ設定 | 2026-11-08に本人が決定（kakeibo-docs の例外も本人が承認）。承認必須の追加も同日本人の要望による。同日、タグのルールセット（tag-protection）でタグの作成・更新・削除を管理者以外禁止とし、リリース作成も実質的に本人のみに制限した。詳細は docs/development-workflow.md |
+| L | GitHub アカウント名 | アカウント名を `root-admin-jp` に変更し、旧アカウント名の痕跡を全リポジトリのファイルと git 履歴から削除した | 2026-11-08に本人が決定・実施。デプロイを前に本名由来のアカウント名を改めたもの。履歴は filter-repo で author/committer・メール形式・本文中の旧名を一括置換 |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 

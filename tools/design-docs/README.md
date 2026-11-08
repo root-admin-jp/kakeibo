@@ -17,7 +17,7 @@
 kakeibo main へ push
   └─ GitHub Actions (.github/workflows/design-docs-sync.yml)
        ├─ generate.py で設計書を生成
-       ├─ 設計書リポジトリ t-nozue-v2/kakeibo-docs を Deploy Key で checkout
+       ├─ 設計書リポジトリ root-admin-jp/kakeibo-docs を Deploy Key で checkout
        │    （秘密鍵は kakeibo リポジトリの Secret: DESIGN_DOCS_DEPLOY_KEY、
        │      公開鍵は kakeibo-docs の Deploy Key (書き込み可) に登録）
        └─ 差分があれば commit + push（差分なしなら何もしない）

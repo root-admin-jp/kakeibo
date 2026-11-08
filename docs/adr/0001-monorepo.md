@@ -3,7 +3,7 @@
 - 状態: Accepted (2026-11-07, 本人指定)
 
 ## 決定
-UI (Nuxt) と API (Kotlin) を1つのリポジトリ `t-nozue-v2/kakeibo` に置く。`apps/api`, `apps/web`, `db/migration`, `docs`, `infra` に分ける。
+UI (Nuxt) と API (Kotlin) を1つのリポジトリ `root-admin-jp/kakeibo` に置く。`apps/api`, `apps/web`, `db/migration`, `docs`, `infra` に分ける。
 
 ## 理由
 UI/APIの契約変更を1つのPRで完結させるため。本人の指定。
