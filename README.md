@@ -2,7 +2,7 @@
 
 マネーフォワード風の家計簿Webアプリ。モノレポ構成（UI / API分離）。
 
-- GitHub: `root-admin-jp/kakeibo`（Private）
+- GitHub: `root-admin-jp/kakeibo`
 - アプリ名: Kakeibo / 通貨: JPY / 言語: 日本語
 - 決定事項: `docs/decisions.md` / 要件: `docs/requirements/requirements.md` / ADR: `docs/adr/`
 - 設計書（自動生成）: 別リポジトリ `root-admin-jp/kakeibo-docs`（テーブル定義書・ER図・API定義書・画面定義書。main 更新のたびに自動同期）

@@ -6,7 +6,7 @@
 
 | ID | 項目 | 決定 | 備考 |
 |---|---|---|---|
-| A1 | GitHub | ユーザー名 `root-admin-jp`、リポジトリ名 `kakeibo` | 2026-11-07に本人が Private を選択 |
+| A1 | GitHub | ユーザー名 `root-admin-jp`、リポジトリ名 `kakeibo` | 2026-11-07に本人が Private を選択（2026-11-08に Public 化方針へ変更、決定J） |
 | A2 | アプリ名 | `Kakeibo` | |
 | A3 | 利用範囲 | 将来一般公開の可能性あり | マルチユーザー前提、ユーザー間データ分離を最初から設計する |
 | B1 | 金融機関連携対象 | イオン銀行、みずほ銀行、PayPay銀行、SBI証券、モバイルWAON、モバイルSuica、静岡銀行、浜松磐田信用金庫 | PayPay銀行は回答で重複記載があったため1件に統合 |
@@ -16,11 +16,12 @@
 | B4 | 通貨・言語 | 日本円 (JPY)、日本語のみ | |
 | C | 技術構成 | 提案どおり | API: Spring Boot 3 / Gradle / Flyway + jOOQ / REST + OpenAPI。UI: Nuxt 3 + TypeScript + SSR / Tailwind。当面ローカル開発 (docker-compose)。MVP: ログイン、口座、収支CRUD、カテゴリ、月次ダッシュボード、CSV入出力 ※DBアクセスは後の決定 D で MyBatis に変更 |
 | D | DBアクセス | MyBatis（jOOQでもJdbcTemplateでもなく） | 2026-11-07に本人が「JOOQではなく、mybatisを使って」と指示。mybatis-spring-boot-starter 3.0.3、SQLはXML Mapper。詳細は ADR-0009（ADR-0008 は Superseded） |
-| E | 設計書 | 専用リポジトリ `root-admin-jp/kakeibo-docs`（Private）へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
+| E | 設計書 | 専用リポジトリ `root-admin-jp/kakeibo-docs` へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
 | F | Spring Boot バージョン | 3.5.16（3.5系最新）へアップグレード | 2026-11-07、Snyk 初回スキャンの API 68件（CRITICAL 16 / HIGH 52）を受けて本人が承認。Boot 4 は変更幅が大きいため見送り。詳細は ADR-0011 |
 | G | Nuxt バージョン | 4.6.4 へ移行（app/ 構成へ移動） | 2026-11-07、Nuxt 3 が EOL（2026-07-31）でセキュリティ修正が来ないことと Snyk Web HIGH 3件を受けて本人が承認。ブランチで検証してからマージ。詳細は ADR-0012 |
-| H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。ブランチ保護は GitHub Free＋Private では利用不可（要Pro/公開化）のため、当面は運用ルールの厳守で担保。詳細は docs/development-workflow.md |
+| H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。ブランチ保護は現在のプラン・公開範囲では利用不可のため、当面は運用ルールの厳守で担保（Public 化後の扱いは決定J）。詳細は docs/development-workflow.md |
 | I | Spring Boot バージョン | 4.1.2 へアップグレード | 2026-11-07、Snyk API 残り9件（Framework 6.2 / Security 6.5 由来で Boot 4 でのみ解消可）への対応として本人が指示。ADR-0011 の暫定パッチ上書きは撤去。詳細は ADR-0013 |
+| J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示。Public 化の時期は未定。過去の ADR 等の決定記録は履歴として残す |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 
@@ -32,7 +33,7 @@
 
 | 項目 | 状態 | 決めるタイミング |
 |---|---|---|
-| GitHubリポジトリの公開範囲 | Private で確定 (2026-11-07) | - |
+| GitHubリポジトリの公開範囲 | 将来 Public 化する方針（2026-11-08、決定J） | 時期は未定 |
 | 本番デプロイ先 | 未定（当面ローカル開発のみで合意済み） | MVP動作後 |
 | 各金融機関CSVの正確なフォーマット | 未調査 | Phase 2 着手時、機関ごとに実ファイルで確認 |
 | SBI証券の扱い（投資資産として別管理か、口座の一種か） | 未確定 | 要件 v0.2 で口座種別 `securities` を追加済み。保有銘柄管理はMVP外 |
