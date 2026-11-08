@@ -29,33 +29,35 @@ async function remove(a: any) {
 }
 </script>
 <template>
-  <div class="space-y-6">
-    <h2 class="text-lg font-bold">口座</h2>
-    <p v-if="error" class="text-red-600 text-sm">{{ error }}</p>
-    <form class="bg-white rounded shadow p-4 flex flex-wrap gap-3 items-end" @submit.prevent="save">
-      <label class="text-sm">名前<input v-model="form.name" required class="block border rounded px-2 py-1 mt-1"></label>
-      <label class="text-sm">種別
-        <select v-model="form.kind" class="block border rounded px-2 py-1 mt-1">
-          <option v-for="(label, k) in kinds" :key="k" :value="k">{{ label }}</option>
-        </select>
-      </label>
-      <label class="text-sm">金融機関
-        <select v-model="form.institutionId" class="block border rounded px-2 py-1 mt-1">
-          <option :value="null">なし</option>
-          <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.name }}</option>
-        </select>
-      </label>
-      <button class="bg-blue-600 text-white px-4 py-1.5 rounded">{{ editingId ? '更新' : '追加' }}</button>
+  <div class="vstack gap-4">
+    <h2 class="fs-5 fw-bold mb-0">口座</h2>
+    <p v-if="error" class="text-danger small mb-0">{{ error }}</p>
+    <form class="card shadow-sm" @submit.prevent="save">
+      <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+        <label class="small">名前<input v-model="form.name" required class="form-control mt-1"></label>
+        <label class="small">種別
+          <select v-model="form.kind" class="form-select mt-1">
+            <option v-for="(label, k) in kinds" :key="k" :value="k">{{ label }}</option>
+          </select>
+        </label>
+        <label class="small">金融機関
+          <select v-model="form.institutionId" class="form-select mt-1">
+            <option :value="null">なし</option>
+            <option v-for="i in institutions" :key="i.id" :value="i.id">{{ i.name }}</option>
+          </select>
+        </label>
+        <button class="btn btn-primary">{{ editingId ? '更新' : '追加' }}</button>
+      </div>
     </form>
-    <ul class="bg-white rounded shadow divide-y">
-      <li v-for="a in accounts" :key="a.id" class="px-4 py-3 flex items-center gap-3">
-        <span class="font-medium">{{ a.name }}</span>
-        <span class="text-xs bg-gray-100 rounded px-2 py-0.5">{{ kinds[a.kind] }}</span>
-        <span class="ml-auto">{{ yen(a.balance) }}</span>
-        <button class="text-blue-600 text-sm" @click="edit(a)">編集</button>
-        <button class="text-red-600 text-sm" @click="remove(a)">削除</button>
+    <ul class="list-group shadow-sm">
+      <li v-for="a in accounts" :key="a.id" class="list-group-item d-flex align-items-center gap-3">
+        <span class="fw-medium">{{ a.name }}</span>
+        <span class="badge text-bg-light border">{{ kinds[a.kind] }}</span>
+        <span class="ms-auto">{{ yen(a.balance) }}</span>
+        <button class="btn btn-link btn-sm text-decoration-none p-0" @click="edit(a)">編集</button>
+        <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" @click="remove(a)">削除</button>
       </li>
-      <li v-if="!accounts.length" class="px-4 py-3 text-gray-400 text-sm">口座がありません</li>
+      <li v-if="!accounts.length" class="list-group-item text-body-tertiary small">口座がありません</li>
     </ul>
   </div>
 </template>

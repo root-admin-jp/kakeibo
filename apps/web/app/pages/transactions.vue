@@ -57,61 +57,63 @@ async function downloadExport() {
 }
 </script>
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center gap-3 flex-wrap">
-      <h2 class="text-lg font-bold">取引</h2>
-      <input v-model="month" type="month" class="border rounded px-2 py-1">
-      <button class="text-sm text-blue-600 underline" @click="downloadExport">CSVエクスポート</button>
+  <div class="vstack gap-4">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <h2 class="fs-5 fw-bold mb-0">取引</h2>
+      <input v-model="month" type="month" class="form-control w-auto">
+      <button class="btn btn-link btn-sm text-decoration-none p-0" @click="downloadExport">CSVエクスポート</button>
     </div>
-    <p v-if="error" class="text-red-600 text-sm">{{ error }}</p>
-    <form class="bg-white rounded shadow p-4 flex flex-wrap gap-3 items-end" @submit.prevent="save">
-      <label class="text-sm">日付<input v-model="form.transactedOn" type="date" required class="block border rounded px-2 py-1 mt-1"></label>
-      <label class="text-sm">種別
-        <select v-model="form.type" class="block border rounded px-2 py-1 mt-1">
-          <option value="expense">支出</option><option value="income">収入</option><option value="transfer">振替</option>
-        </select>
-      </label>
-      <label class="text-sm">口座
-        <select v-model="form.accountId" required class="block border rounded px-2 py-1 mt-1">
-          <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
-        </select>
-      </label>
-      <label v-if="form.type==='transfer'" class="text-sm">振替先
-        <select v-model="form.toAccountId" required class="block border rounded px-2 py-1 mt-1">
-          <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
-        </select>
-      </label>
-      <label class="text-sm">カテゴリ
-        <select v-model="form.categoryId" class="block border rounded px-2 py-1 mt-1">
-          <option :value="null">未分類</option>
-          <option v-for="c in categories" :key="c.id" :value="c.id">{{ catLabel(c) }}</option>
-        </select>
-      </label>
-      <label class="text-sm">金額<input v-model.number="form.amount" type="number" min="1" required class="block border rounded px-2 py-1 mt-1 w-28"></label>
-      <label class="text-sm">内容<input v-model="form.memo" class="block border rounded px-2 py-1 mt-1"></label>
-      <button class="bg-blue-600 text-white px-4 py-1.5 rounded">{{ editingId ? '更新' : '追加' }}</button>
+    <p v-if="error" class="text-danger small mb-0">{{ error }}</p>
+    <form class="card shadow-sm" @submit.prevent="save">
+      <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+        <label class="small">日付<input v-model="form.transactedOn" type="date" required class="form-control mt-1"></label>
+        <label class="small">種別
+          <select v-model="form.type" class="form-select mt-1">
+            <option value="expense">支出</option><option value="income">収入</option><option value="transfer">振替</option>
+          </select>
+        </label>
+        <label class="small">口座
+          <select v-model="form.accountId" required class="form-select mt-1">
+            <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
+          </select>
+        </label>
+        <label v-if="form.type==='transfer'" class="small">振替先
+          <select v-model="form.toAccountId" required class="form-select mt-1">
+            <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
+          </select>
+        </label>
+        <label class="small">カテゴリ
+          <select v-model="form.categoryId" class="form-select mt-1">
+            <option :value="null">未分類</option>
+            <option v-for="c in categories" :key="c.id" :value="c.id">{{ catLabel(c) }}</option>
+          </select>
+        </label>
+        <label class="small">金額<input v-model.number="form.amount" type="number" min="1" required class="form-control mt-1 amount-input"></label>
+        <label class="small">内容<input v-model="form.memo" class="form-control mt-1"></label>
+        <button class="btn btn-primary">{{ editingId ? '更新' : '追加' }}</button>
+      </div>
     </form>
-    <div class="bg-white rounded shadow p-4 flex flex-wrap gap-3 items-end">
-      <label class="text-sm">CSVインポート先口座
-        <select v-model="importAccountId" class="block border rounded px-2 py-1 mt-1">
+    <div class="card shadow-sm"><div class="card-body d-flex flex-wrap gap-3 align-items-end">
+      <label class="small">CSVインポート先口座
+        <select v-model="importAccountId" class="form-select mt-1">
           <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.name }}</option>
         </select>
       </label>
-      <label class="text-sm">CSVファイル（日付,収支種別,金額,大項目,中項目,内容）
-        <input type="file" accept=".csv" class="block mt-1" @change="onImport">
+      <label class="small">CSVファイル（日付,収支種別,金額,大項目,中項目,内容）
+        <input type="file" accept=".csv" class="form-control mt-1" @change="onImport">
       </label>
-      <p v-if="importMsg" class="text-sm text-gray-600 w-full">{{ importMsg }}</p>
-    </div>
-    <ul class="bg-white rounded shadow divide-y">
-      <li v-for="t in items" :key="t.id" class="px-4 py-2.5 flex items-center gap-3 text-sm">
-        <span class="text-gray-500 w-24">{{ t.transactedOn }}</span>
-        <span class="w-10" :class="t.type==='income' ? 'text-green-600' : t.type==='transfer' ? 'text-gray-500' : 'text-red-600'">{{ t.type==='income' ? '収入' : t.type==='transfer' ? '振替' : '支出' }}</span>
-        <span class="flex-1">{{ t.memo || '（内容なし）' }} <span class="text-gray-400">/ {{ accountName(t.accountId) }}</span></span>
-        <span class="font-medium">{{ yen(t.amount) }}</span>
-        <button class="text-blue-600" @click="edit(t)">編集</button>
-        <button class="text-red-600" @click="remove(t)">削除</button>
+      <p v-if="importMsg" class="small text-body-secondary w-100 mb-0">{{ importMsg }}</p>
+    </div></div>
+    <ul class="list-group shadow-sm">
+      <li v-for="t in items" :key="t.id" class="list-group-item d-flex align-items-center gap-3 small">
+        <span class="text-body-secondary col-date flex-shrink-0">{{ t.transactedOn }}</span>
+        <span class="col-type flex-shrink-0" :class="t.type==='income' ? 'text-success' : t.type==='transfer' ? 'text-body-secondary' : 'text-danger'">{{ t.type==='income' ? '収入' : t.type==='transfer' ? '振替' : '支出' }}</span>
+        <span class="flex-grow-1">{{ t.memo || '（内容なし）' }} <span class="text-body-tertiary">/ {{ accountName(t.accountId) }}</span></span>
+        <span class="fw-medium">{{ yen(t.amount) }}</span>
+        <button class="btn btn-link btn-sm text-decoration-none p-0" @click="edit(t)">編集</button>
+        <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" @click="remove(t)">削除</button>
       </li>
-      <li v-if="!items.length" class="px-4 py-3 text-gray-400 text-sm">この月の取引はありません</li>
+      <li v-if="!items.length" class="list-group-item text-body-tertiary small">この月の取引はありません</li>
     </ul>
   </div>
 </template>

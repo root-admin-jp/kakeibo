@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: true,
-  modules: ['@nuxtjs/tailwindcss'],
+  css: ['bootstrap/dist/css/bootstrap.min.css', '~/assets/css/main.css'],
   runtimeConfig: {
     public: {
       // APIのURLは環境変数 NUXT_PUBLIC_API_BASE で上書きする。秘密は置かない。
