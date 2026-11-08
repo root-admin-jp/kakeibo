@@ -19,9 +19,10 @@
 | E | 設計書 | 専用リポジトリ `root-admin-jp/kakeibo-docs` へ自動生成・自動同期 | 2026-11-07に本人が希望。main更新のたびに Actions がソースから再生成して同期（Deploy Key方式）。詳細は ADR-0010 |
 | F | Spring Boot バージョン | 3.5.16（3.5系最新）へアップグレード | 2026-11-07、Snyk 初回スキャンの API 68件（CRITICAL 16 / HIGH 52）を受けて本人が承認。Boot 4 は変更幅が大きいため見送り。詳細は ADR-0011 |
 | G | Nuxt バージョン | 4.6.4 へ移行（app/ 構成へ移動） | 2026-11-07、Nuxt 3 が EOL（2026-07-31）でセキュリティ修正が来ないことと Snyk Web HIGH 3件を受けて本人が承認。ブランチで検証してからマージ。詳細は ADR-0012 |
-| H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。ブランチ保護は現在のプラン・公開範囲では利用不可のため、当面は運用ルールの厳守で担保（Public 化後の扱いは決定J）。詳細は docs/development-workflow.md |
+| H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。main への取り込みは PR 経由必須で、Public 化（決定J）後はルールセットでも機械的に強制している（決定K、kakeibo-docs は例外）。詳細は docs/development-workflow.md |
 | I | Spring Boot バージョン | 4.1.2 へアップグレード | 2026-11-07、Snyk API 残り9件（Framework 6.2 / Security 6.5 由来で Boot 4 でのみ解消可）への対応として本人が指示。ADR-0011 の暫定パッチ上書きは撤去。詳細は ADR-0013 |
-| J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示。Public 化の時期は未定。過去の ADR 等の決定記録は履歴として残す |
+| J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示し、同日3リポジトリを Public 化した。過去の ADR 等の決定記録は履歴として残す |
+| K | main のルールセット | kakeibo / kakeibo-local の main はルールセットで PR 必須とする（kakeibo は CI の api / web 成功も必須）。リポジトリ管理者（本人アカウント）は PR マージ時のみバイパス可。kakeibo-docs は自動同期の直接 push を守るため PR 必須の対象外とし、削除・force push の禁止のみ設定 | 2026-11-08に本人が決定（kakeibo-docs の例外も本人が承認）。詳細は docs/development-workflow.md |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 
@@ -33,7 +34,7 @@
 
 | 項目 | 状態 | 決めるタイミング |
 |---|---|---|
-| GitHubリポジトリの公開範囲 | 将来 Public 化する方針（2026-11-08、決定J） | 時期は未定 |
+| GitHubリポジトリの公開範囲 | Public 化済み（2026-11-08、決定J） | 完了 |
 | 本番デプロイ先 | 未定（当面ローカル開発のみで合意済み） | MVP動作後 |
 | 各金融機関CSVの正確なフォーマット | 未調査 | Phase 2 着手時、機関ごとに実ファイルで確認 |
 | SBI証券の扱い（投資資産として別管理か、口座の一種か） | 未確定 | 要件 v0.2 で口座種別 `securities` を追加済み。保有銘柄管理はMVP外 |
