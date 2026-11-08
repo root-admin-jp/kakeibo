@@ -2,8 +2,11 @@ name: E2E
 
 # 実MySQL + 実API + 実Web を起動して Playwright で通し確認する。
 # 通常の CI (ci.yml) とは分離し、こちらはフルスタックの起動が前提。
+# PR 作成時にも実行され、ルールセットでマージの必須チェックになっている。
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
