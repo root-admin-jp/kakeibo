@@ -13,7 +13,7 @@
 |---|---|
 | API | Kotlin / Spring Boot 4.1.2 / Gradle / Flyway + MyBatis / REST + OpenAPI |
 | DB | MySQL 8 |
-| Web | Nuxt 4.6.4 / TypeScript / SSR / Tailwind CSS |
+| Web | Nuxt 4.6.4 / TypeScript / SSR / Bootstrap 5.3 |
 | 認証 | メール + パスワード（JWT） |
 
 将来の一般公開を視野に、マルチユーザー前提でユーザー間データを分離している（共有・招待機能はなし）。

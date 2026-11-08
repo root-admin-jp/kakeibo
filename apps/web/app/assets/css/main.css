@@ -1,0 +1,30 @@
+/* Kakeibo 固有の最小限の調整（基本は Bootstrap のクラスで構成する） */
+
+/* 画面全体の背景（旧 bg-gray-50 相当） */
+body {
+  background-color: var(--bs-tertiary-bg);
+}
+
+/* コンテンツ幅（旧 max-w-5xl = 64rem 相当）。container のブレークポイント指定より後に読み込み、上書きする */
+.app-container {
+  max-width: 64rem;
+}
+
+/* ログインカードの幅（旧 max-w-sm = 24rem 相当） */
+.login-card {
+  max-width: 24rem;
+}
+
+/* 取引一覧の固定幅カラム（旧 w-24 / w-10 相当） */
+.col-date {
+  width: 6rem;
+}
+
+.col-type {
+  width: 3rem;
+}
+
+/* 金額入力の幅（旧 w-28 = 7rem 相当） */
+.amount-input {
+  width: 7rem;
+}

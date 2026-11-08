@@ -24,6 +24,7 @@
 | J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示し、同日3リポジトリを Public 化した。GHCR のイメージ（kakeibo-api / kakeibo-web）も同日 Public 化済み。過去の ADR 等の決定記録は履歴として残す |
 | K | main のルールセット | kakeibo / kakeibo-local の main はルールセットで PR 必須とする（kakeibo は CI の api / web 成功も必須）。承認必須数1とコードオーナーレビュー必須（.github/CODEOWNERS で全ファイルを本人に割当）も設定し、本人以外のアカウントが作った PR は本人の承認なしにマージできない。リポジトリ管理者（本人アカウント）は PR マージ時のみバイパス可（本人が作者の PR は自己承認できないため、このバイパスでマージする）。kakeibo-docs は自動同期の直接 push を守るため PR 必須の対象外とし、削除・force push の禁止のみ設定 | 2026-11-08に本人が決定（kakeibo-docs の例外も本人が承認）。承認必須の追加も同日本人の要望による。同日、タグのルールセット（tag-protection）でタグの作成・更新・削除を管理者以外禁止とし、リリース作成も実質的に本人のみに制限した。詳細は docs/development-workflow.md |
 | L | GitHub アカウント名 | アカウント名を `root-admin-jp` に変更し、旧アカウント名の痕跡を全リポジトリのファイルと git 履歴から削除した | 2026-11-08に本人が決定・実施。デプロイを前に本名由来のアカウント名を改めたもの。履歴は filter-repo で author/committer・メール形式・本文中の旧名を一括置換 |
+| M | UI の CSS フレームワーク | Tailwind CSS から Bootstrap（5.3.8）へ移行する | 2026-11-09に本人が指示。デザインを Bootstrap のコンポーネント／ユーティリティで構成する。@nuxtjs/tailwindcss は除去し、Bootstrap の CSS を nuxt.config の css で読み込む（JS は現行 UI で不要なため読み込まない）。画面構成・文言・操作は変えず、クラス置換のみ。決定 C の「Tailwind」はこの決定で置き換える |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
 

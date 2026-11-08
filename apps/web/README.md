@@ -1,6 +1,6 @@
 # Kakeibo Web
 
-Nuxt 4.6.4 + TypeScript + SSR / Tailwind CSS。ソースは Nuxt 4 標準の `app/` 配下（pages / layouts / composables / middleware）。APIとは OpenAPI 経由でのみ連携する (ADR-0004)。
+Nuxt 4.6.4 + TypeScript + SSR / Bootstrap 5.3。ソースは Nuxt 4 標準の `app/` 配下（pages / layouts / composables / middleware）。APIとは OpenAPI 経由でのみ連携する (ADR-0004)。
 
 ## 画面（5画面）
 ログイン / 登録、ダッシュボード（月次集計）、取引、口座、カテゴリ。
