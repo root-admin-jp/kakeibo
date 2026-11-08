@@ -21,7 +21,7 @@
 | G | Nuxt バージョン | 4.6.4 へ移行（app/ 構成へ移動） | 2026-11-07、Nuxt 3 が EOL（2026-07-31）でセキュリティ修正が来ないことと Snyk Web HIGH 3件を受けて本人が承認。ブランチで検証してからマージ。詳細は ADR-0012 |
 | H | PR レビュー運用 | main は PR 経由必須とし、レビューは Muse が担当する | 2026-11-07、Copilot のコードレビューが無料プランでは使えないため代替として本人が決定。main への取り込みは PR 経由必須で、Public 化（決定J）後はルールセットでも機械的に強制している（決定K、kakeibo-docs は例外）。詳細は docs/development-workflow.md |
 | I | Spring Boot バージョン | 4.1.2 へアップグレード | 2026-11-07、Snyk API 残り9件（Framework 6.2 / Security 6.5 由来で Boot 4 でのみ解消可）への対応として本人が指示。ADR-0011 の暫定パッチ上書きは撤去。詳細は ADR-0013 |
-| J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示し、同日3リポジトリを Public 化した。過去の ADR 等の決定記録は履歴として残す |
+| J | リポジトリ公開範囲 | kakeibo / kakeibo-docs / kakeibo-local の3リポジトリは将来的に Public 化する。Private 前提の記載は置かない | 2026-11-08に本人が方針を提示し、同日3リポジトリを Public 化した。GHCR のイメージ（kakeibo-api / kakeibo-web）も同日 Public 化済み。過去の ADR 等の決定記録は履歴として残す |
 | K | main のルールセット | kakeibo / kakeibo-local の main はルールセットで PR 必須とする（kakeibo は CI の api / web 成功も必須）。リポジトリ管理者（本人アカウント）は PR マージ時のみバイパス可。kakeibo-docs は自動同期の直接 push を守るため PR 必須の対象外とし、削除・force push の禁止のみ設定 | 2026-11-08に本人が決定（kakeibo-docs の例外も本人が承認）。詳細は docs/development-workflow.md |
 
 ## 設計への反映（A3 + B3 の組み合わせ）
