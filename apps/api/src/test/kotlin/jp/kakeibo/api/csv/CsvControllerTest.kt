@@ -109,6 +109,21 @@ class CsvControllerTest {
     }
 
     @Test
+    fun `import accepts signed adjustment rows without category`() {
+        val csv = """
+            日付,収支種別,金額,大項目,中項目,内容
+            2026-11-06,残高調整,-1500,,,残高調整
+            2026-11-07,残高調整,0,,,ゼロは不正
+        """.trimIndent()
+        val result = controller.import(1, null, csvFile(csv))
+        assertEquals(1, result.imported)
+        assertEquals(1, result.skipped)
+        assertEquals("adjustment", inserted[0][4])
+        assertEquals(-1500L, inserted[0][5])
+        assertEquals(null, inserted[0][3]) // 残高調整はカテゴリを持たない
+    }
+
+    @Test
     fun `import with unknown account is bad request and inserts nothing`() {
         val csv = "日付,収支種別,金額,大項目,中項目,内容\n2026-11-01,支出,100,食費,食料品,x\n"
         val e = assertFailsWith<ResponseStatusException> { controller.import(99, null, csvFile(csv)) }
@@ -122,6 +137,7 @@ class CsvControllerTest {
             listOf(
                 TransactionRow(1, 7, 1, null, 11, "expense", 1200, LocalDate.of(2026, 11, 1), "スーパー"),
                 TransactionRow(2, 7, 1, null, 21, "income", 300000, LocalDate.of(2026, 11, 2), "給料"),
+                TransactionRow(3, 7, 1, null, null, "adjustment", -2500, LocalDate.of(2026, 11, 3), "残高調整"),
             ),
         )
         val res = controller.export("2026-11")
@@ -129,6 +145,7 @@ class CsvControllerTest {
         assertTrue(body.startsWith("\uFEFF"), "Excel互換のためBOM付きで返す") // 先頭は U+FEFF
         assertTrue(body.contains("日付") && body.contains("収支種別"))
         assertTrue(body.contains("支出") && body.contains("収入"))
+        assertTrue(body.contains("残高調整") && body.contains("-2500")) // 残高調整は符号付きのまま書き出す
         assertTrue(body.contains("食費") && body.contains("食料品"))
         assertTrue(body.contains("スーパー"))
         assertEquals("attachment; filename=kakeibo-2026-11.csv", res.headers.getFirst("Content-Disposition"))

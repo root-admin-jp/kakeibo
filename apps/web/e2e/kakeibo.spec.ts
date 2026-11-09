@@ -111,6 +111,33 @@ test.describe.serial('Kakeibo E2E', () => {
     expect(content).toContain(csvMemo) // CSV取り込みした支出
   })
 
+  test('口座の残高を設定できる（記録する／記録しない）', async ({ page }) => {
+    const balAccount = `E2E残高口座${stamp}`
+    await login(page)
+    await page.goto('/accounts')
+    await page.getByLabel('名前', { exact: true }).fill(balAccount)
+    await page.getByLabel(/現在の残高/).fill('10000')
+    // 「記録する」チェックは既定でオン
+    await page.getByRole('button', { name: '追加' }).click()
+    const row = page.locator('li', { hasText: balAccount })
+    await expect(row.getByText('¥10,000')).toBeVisible()
+    // 記録したので取引一覧に「残高調整」が出る
+    await page.goto('/transactions')
+    await expect(page.getByText('残高調整').first()).toBeVisible()
+    await expect(page.getByText('¥10,000').first()).toBeVisible()
+    // 編集で残高を 8,000 にし、「記録しない」で保存すると残高だけ変わり取引は増えない
+    await page.goto('/accounts')
+    await row.getByRole('button', { name: '編集' }).click()
+    await page.getByLabel(/現在の残高/).fill('8000')
+    await page.getByRole('checkbox').uncheck()
+    await page.getByRole('button', { name: '更新' }).click()
+    await expect(row.getByText('¥8,000')).toBeVisible()
+    await page.goto('/transactions')
+    await expect(page.getByText('残高調整').first()).toBeVisible() // 一覧の読み込み完了を確認してから
+    await expect(page.getByText('¥-2,000')).toHaveCount(0) // 差額 -2,000 の取引は作られていない
+    await expect(page.getByText('¥10,000').first()).toBeVisible() // 最初の調整は残っている
+  })
+
   test('パスキーを登録すると、次回はパスキーだけでログインできる', async ({ page, context }) => {
     await login(page)
     // Chromium の仮想認証器（discoverable credential + ユーザー確認あり）

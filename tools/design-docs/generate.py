@@ -83,7 +83,7 @@ def parse_column(item: str):
 def apply_ddl(tables, masters, sql: str):
     """1マイグレーション分の SQL を実効スキーマへ反映する。
 
-    CREATE TABLE の追加に加え、ALTER TABLE の DROP COLUMN / ADD COLUMN も適用する。
+    CREATE TABLE の追加に加え、ALTER TABLE の DROP COLUMN / ADD COLUMN / MODIFY COLUMN も適用する。
     マイグレーションを版順に全て適用することで、V2 以降の変更（テーブル追加・列削除など）
     を含めた現在のスキーマが得られる。
     """
@@ -114,7 +114,7 @@ def apply_ddl(tables, masters, sql: str):
     im = re.search(r"INSERT INTO financial_institutions \(code, name, kind\) VALUES(.*?)ON DUPLICATE", sql, re.S)
     if im:
         masters.extend(re.findall(r"\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)", im.group(1)))
-    # ALTER TABLE（DROP COLUMN / ADD COLUMN のみ対応。その他の変更は無視する）
+    # ALTER TABLE（DROP COLUMN / ADD COLUMN / MODIFY COLUMN に対応。その他の変更は無視する）
     for am in re.finditer(r"ALTER TABLE (\w+)\s+(.*?);", sql, re.S):
         t = tables.get(am.group(1))
         if t is None:
@@ -134,6 +134,16 @@ def apply_ddl(tables, masters, sql: str):
                 col = parse_column(adm.group(1).strip())
                 if col:
                     t.columns.append(col)
+                continue
+            mm = re.match(r"MODIFY COLUMN (.+)", action, re.I | re.S)
+            if mm:
+                col = parse_column(mm.group(1).strip())
+                if col:
+                    # 同名カラムを同じ位置で置き換える（型・NULL可否・デフォルトの変更を反映する）
+                    for i, c in enumerate(t.columns):
+                        if c.name == col.name:
+                            t.columns[i] = col
+                            break
     return tables, masters
 
 
@@ -225,8 +235,8 @@ def gen_table_definition(tables, masters):
     lines.append("|---|---|---|---|")
     remarks = {
         "users": "ログインユーザー", "households": "テナント（1オーナー専用）",
-        "financial_institutions": "金融機関マスタ（初期データあり）", "accounts": "口座（残高は取引から算出）",
-        "categories": "カテゴリ（2階層: parent_id で親子）", "transactions": "取引（収入/支出/振替、論理削除）",
+        "financial_institutions": "金融機関マスタ（初期データあり）", "accounts": "口座（残高は取引の合計＋未記録の残高調整で算出）",
+        "categories": "カテゴリ（2階層: parent_id で親子）", "transactions": "取引（収入/支出/振替/残高調整、論理削除）",
         "budgets": "予算（カテゴリ×月）", "import_jobs": "CSV取込ジョブ履歴",
         "institution_connections": "金融機関連携（外部参照のみ保持）",
         "login_codes": "OTPログインコード（ハッシュのみ保持、ワンタイム）",

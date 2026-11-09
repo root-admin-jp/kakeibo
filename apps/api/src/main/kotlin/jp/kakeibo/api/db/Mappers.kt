@@ -66,6 +66,9 @@ interface AccountMapper {
         @Param("householdId") householdId: Long, @Param("id") id: Long,
         @Param("institutionId") institutionId: Long?, @Param("name") name: String, @Param("kind") kind: String,
     ): Int
+    fun addBalanceOffset(
+        @Param("householdId") householdId: Long, @Param("id") id: Long, @Param("delta") delta: Long,
+    ): Int
     fun countTransactions(@Param("id") id: Long): Int
     fun delete(@Param("householdId") householdId: Long, @Param("id") id: Long): Int
 }
