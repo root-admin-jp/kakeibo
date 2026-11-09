@@ -116,6 +116,16 @@ class TransactionControllerTest {
     }
 
     @Test
+    fun `update of an adjustment transaction is bad request`() {
+        // 残高調整は口座の残高設定で自動登録される取引なので、手動編集は不可（ADR-0015）
+        whenever(transactions.findById(7, 77))
+            .thenReturn(TransactionRow(77, 7, 1, null, null, "adjustment", -500, LocalDate.of(2026, 11, 1), "残高調整"))
+        val e = assertFailsWith<ResponseStatusException> { controller.update(77, req()) }
+        assertEquals(HttpStatus.BAD_REQUEST, e.statusCode)
+        verify(transactions, org.mockito.kotlin.never()).update(any(), any(), any(), anyOrNull(), anyOrNull(), any(), any(), any(), anyOrNull())
+    }
+
+    @Test
     fun `update of missing transaction is not found`() {
         whenever(transactions.update(any(), any(), any(), anyOrNull(), anyOrNull(), any(), any(), any(), anyOrNull()))
             .thenReturn(0)

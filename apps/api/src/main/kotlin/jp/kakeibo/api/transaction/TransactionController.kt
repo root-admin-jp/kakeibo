@@ -85,8 +85,14 @@ class TransactionController(
 
     @PutMapping("/{id}")
     fun update(@PathVariable id: Long, @Valid @RequestBody req: TransactionRequest): TransactionResponse {
-        validate(req)
         val user = currentUser()
+        // 残高調整（口座の残高設定で自動登録される取引）は編集不可。直したい場合は削除して残高を設定し直す（ADR-0015）
+        val existing = transactions.findById(user.householdId, id)
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "transaction not found")
+        if (existing.type == "adjustment") {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "残高調整の取引は編集できません")
+        }
+        validate(req)
         if (transactions.update(user.householdId, id, req.accountId, req.toAccountId, req.categoryId, req.type, req.amount, req.transactedOn, req.memo) == 0) {
             throw ResponseStatusException(HttpStatus.NOT_FOUND, "transaction not found")
         }

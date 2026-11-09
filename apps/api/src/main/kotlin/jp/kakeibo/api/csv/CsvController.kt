@@ -29,6 +29,7 @@ data class ImportResult(val imported: Int, val skipped: Int, val errors: List<St
 /**
  * 汎用/MF形式CSV: 日付, 収支種別（収入/振替/それ以外は支出）, 金額, 大項目, 中項目, 内容
  * 既存の MF(SSNB) CSV Importer の列仕様と互換にする（要件定義 §3.3）。
+ * 拡張として収支種別「残高調整」（ADR-0015）も扱う: 金額は符号付きで往復でき、カテゴリは持たない。
  */
 @RestController
 @RequestMapping("/api/transactions")
@@ -50,7 +51,7 @@ class CsvController(
             for (t in rows) {
                 val child = t.categoryId?.let { cats[it] }
                 val parent = child?.parentId?.let { cats[it] }
-                val typeLabel = when (t.type) { "income" -> "収入"; "transfer" -> "振替"; else -> "支出" }
+                val typeLabel = when (t.type) { "income" -> "収入"; "transfer" -> "振替"; "adjustment" -> "残高調整"; else -> "支出" }
                 writer.writeNext(
                     arrayOf(
                         t.transactedOn.toString(), typeLabel, t.amount.toString(),
@@ -95,9 +96,10 @@ class CsvController(
                 if (lineNo == 1 && row[0].trim() == "日付") continue // ヘッダー
                 try {
                     val date = LocalDate.parse(row[0].trim().replace("/", "-"))
-                    val type = when (row[1].trim()) { "収入" -> "income"; "振替" -> "transfer"; else -> "expense" }
+                    val type = when (row[1].trim()) { "収入" -> "income"; "振替" -> "transfer"; "残高調整" -> "adjustment"; else -> "expense" }
                     val amount = row[2].trim().replace(",", "").replace("円", "").toLong()
-                    if (amount <= 0) { skipped++; errors.add("${lineNo}行目: 金額が不正です"); continue }
+                    // 残高調整だけは符号付き（マイナス可・ゼロ不可）、他は正の金額のみ
+                    if (if (type == "adjustment") amount == 0L else amount <= 0) { skipped++; errors.add("${lineNo}行目: 金額が不正です"); continue }
                     if (type == "transfer" && toAccountId == null) {
                         skipped++; errors.add("${lineNo}行目: 振替には振替先口座(toAccountId)が必要です"); continue
                     }
@@ -106,7 +108,7 @@ class CsvController(
                     val memo = row.getOrNull(5)?.trim()?.takeIf { it.isNotBlank() }
                     transactions.insert(
                         user.householdId, accountId, if (type == "transfer") toAccountId else null,
-                        resolveCategory(top, child), type, amount, date, memo,
+                        if (type == "adjustment") null else resolveCategory(top, child), type, amount, date, memo,
                     )
                     imported++
                 } catch (e: Exception) {

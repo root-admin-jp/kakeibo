@@ -107,10 +107,10 @@ async function downloadExport() {
     <ul class="list-group shadow-sm">
       <li v-for="t in items" :key="t.id" class="list-group-item d-flex align-items-center gap-3 small">
         <span class="text-body-secondary col-date flex-shrink-0">{{ t.transactedOn }}</span>
-        <span class="col-type flex-shrink-0" :class="t.type==='income' ? 'text-success' : t.type==='transfer' ? 'text-body-secondary' : 'text-danger'">{{ t.type==='income' ? '収入' : t.type==='transfer' ? '振替' : '支出' }}</span>
+        <span class="col-type flex-shrink-0" :class="t.type==='income' ? 'text-success' : t.type==='expense' ? 'text-danger' : 'text-body-secondary'">{{ t.type==='income' ? '収入' : t.type==='transfer' ? '振替' : t.type==='adjustment' ? '残高調整' : '支出' }}</span>
         <span class="flex-grow-1">{{ t.memo || '（内容なし）' }} <span class="text-body-tertiary">/ {{ accountName(t.accountId) }}</span></span>
         <span class="fw-medium">{{ yen(t.amount) }}</span>
-        <button class="btn btn-link btn-sm text-decoration-none p-0" @click="edit(t)">編集</button>
+        <button v-if="t.type!=='adjustment'" class="btn btn-link btn-sm text-decoration-none p-0" @click="edit(t)">編集</button>
         <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" @click="remove(t)">削除</button>
       </li>
       <li v-if="!items.length" class="list-group-item text-body-tertiary small">この月の取引はありません</li>

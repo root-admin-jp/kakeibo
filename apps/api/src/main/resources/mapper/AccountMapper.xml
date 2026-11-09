@@ -2,18 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="jp.kakeibo.api.db.AccountMapper">
 
+  <!-- 残高 = 取引の合計（残高調整は符号付きで加算）+ balance_offset（記録しない調整の累積、ADR-0015） -->
   <select id="listByHousehold" resultType="jp.kakeibo.api.db.AccountRow">
-    SELECT a.id, a.household_id, a.institution_id, a.name, a.kind,
+    SELECT a.id, a.household_id, a.institution_id, a.name, a.kind, a.balance_offset,
       COALESCE(SUM(CASE
         WHEN t.type = 'income' AND t.account_id = a.id THEN t.amount
         WHEN t.type = 'expense' AND t.account_id = a.id THEN -t.amount
         WHEN t.type = 'transfer' AND t.account_id = a.id THEN -t.amount
         WHEN t.type = 'transfer' AND t.to_account_id = a.id THEN t.amount
-        ELSE 0 END), 0) AS balance
+        WHEN t.type = 'adjustment' AND t.account_id = a.id THEN t.amount
+        ELSE 0 END), 0) + a.balance_offset AS balance
     FROM accounts a
     LEFT JOIN transactions t ON (t.account_id = a.id OR t.to_account_id = a.id) AND t.deleted_at IS NULL
     WHERE a.household_id = #{householdId}
-    GROUP BY a.id, a.household_id, a.institution_id, a.name, a.kind
+    GROUP BY a.id, a.household_id, a.institution_id, a.name, a.kind, a.balance_offset
     ORDER BY a.id
   </select>
 
@@ -25,6 +27,11 @@
 
   <update id="update">
     UPDATE accounts SET institution_id = #{institutionId}, name = #{name}, kind = #{kind}
+    WHERE household_id = #{householdId} AND id = #{id}
+  </update>
+
+  <update id="addBalanceOffset">
+    UPDATE accounts SET balance_offset = balance_offset + #{delta}
     WHERE household_id = #{householdId} AND id = #{id}
   </update>
 

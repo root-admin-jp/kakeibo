@@ -110,6 +110,26 @@ class MapperIntegrationTest {
     }
 
     @Test
+    fun `account balance includes adjustment transactions and balance offset`() {
+        val hid = newHousehold()
+        val a = accounts.insert(hid, null, "銀行", "bank")
+        val nov = LocalDate.of(2026, 11, 10)
+        transactions.insert(hid, a, null, null, "income", 10_000, nov, null)
+        // 記録する残高調整（符号付き）と、記録しない調整（offset）の両方が残高に効く（ADR-0015）
+        transactions.insert(hid, a, null, null, "adjustment", -2_500, nov, "残高調整")
+        accounts.addBalanceOffset(hid, a, 1_000)
+
+        val row = accounts.findById(hid, a)!!
+        assertEquals(8_500L, row.balance)
+        assertEquals(1_000L, row.balanceOffset)
+
+        // 残高調整は月次収支には含まれない
+        val (income, expense) = transactions.monthlyTotals(hid, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30))
+        assertEquals(10_000L, income)
+        assertEquals(0L, expense)
+    }
+
+    @Test
     fun `transaction filtering soft delete and tenant isolation`() {
         val hid = newHousehold()
         val other = newHousehold()

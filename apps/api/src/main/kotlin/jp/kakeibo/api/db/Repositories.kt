@@ -23,7 +23,7 @@ data class WebAuthnChallengeRow(
     var expiresAt: LocalDateTime = LocalDateTime.now(), var createdAt: LocalDateTime = LocalDateTime.now(),
 )
 data class HouseholdRow(var id: Long = 0, var ownerUserId: Long = 0, var name: String = "")
-data class AccountRow(var id: Long = 0, var householdId: Long = 0, var institutionId: Long? = null, var name: String = "", var kind: String = "", var balance: Long = 0)
+data class AccountRow(var id: Long = 0, var householdId: Long = 0, var institutionId: Long? = null, var name: String = "", var kind: String = "", var balance: Long = 0, var balanceOffset: Long = 0)
 data class CategoryRow(var id: Long = 0, var householdId: Long = 0, var parentId: Long? = null, var name: String = "", var sortOrder: Int = 0)
 data class TransactionRow(
     var id: Long = 0, var householdId: Long = 0, var accountId: Long = 0, var toAccountId: Long? = null,
@@ -131,6 +131,10 @@ class AccountRepository(private val mapper: AccountMapper) {
 
     fun update(householdId: Long, id: Long, institutionId: Long?, name: String, kind: String): Int =
         mapper.update(householdId, id, institutionId, name, kind)
+
+    /** 「記録しない」残高調整の差額を balance_offset に加算する（ADR-0015）。 */
+    fun addBalanceOffset(householdId: Long, id: Long, delta: Long): Int =
+        mapper.addBalanceOffset(householdId, id, delta)
 
     fun countTransactions(id: Long): Int = mapper.countTransactions(id)
 
