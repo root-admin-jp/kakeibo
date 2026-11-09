@@ -5,7 +5,6 @@ import { readFileSync } from 'node:fs'
 // 再ログイン後もデータが見えることまでを通しで確認する。
 const stamp = Date.now()
 const email = `e2e-${stamp}@example.com`
-const password = 'password123'
 const displayName = 'E2E太郎'
 const accountName = `E2E銀行口座${stamp}`
 const memo = `E2Eスーパー買い物${stamp}`
@@ -24,11 +23,12 @@ test.describe.serial('Kakeibo E2E', () => {
 
   test('新規登録するとダッシュボードが表示される', async ({ page }) => {
     await page.goto('/login')
-    await page.getByRole('button', { name: '新規登録' }).click()
-    await page.getByPlaceholder('表示名').fill(displayName)
+    await page.getByPlaceholder('表示名（新規登録のときだけ）').fill(displayName)
     await page.getByPlaceholder('メールアドレス').fill(email)
-    await page.getByPlaceholder('パスワード（8文字以上）').fill(password)
-    await page.getByRole('button', { name: '登録する' }).click()
+    const seen = await countOtpLines(email)
+    await page.getByRole('button', { name: 'コードを送信' }).click()
+    await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email, seen))
+    await page.getByRole('button', { name: 'ログイン' }).click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
     await expect(page.getByText(displayName)).toBeVisible() // ヘッダーのユーザー名
@@ -76,8 +76,10 @@ test.describe.serial('Kakeibo E2E', () => {
     await page.getByRole('button', { name: 'ログアウト' }).click()
     await expect(page).toHaveURL(/\/login$/)
     await page.getByPlaceholder('メールアドレス').fill(email)
-    await page.getByPlaceholder('パスワード（8文字以上）').fill(password)
-    await page.locator('form > button').click()
+    const seen = await countOtpLines(email)
+    await page.getByRole('button', { name: 'コードを送信' }).click()
+    await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email, seen))
+    await page.getByRole('button', { name: 'ログイン' }).click()
     await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
     await page.goto('/transactions')
     await expect(page.getByText(memo)).toBeVisible()
@@ -114,7 +116,42 @@ test.describe.serial('Kakeibo E2E', () => {
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login')
   await page.getByPlaceholder('メールアドレス').fill(email)
-  await page.getByPlaceholder('パスワード（8文字以上）').fill(password)
-  await page.locator('form > button').click()
+  const seen = await countOtpLines(email)
+  await page.getByRole('button', { name: 'コードを送信' }).click()
+  await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email, seen))
+  await page.getByRole('button', { name: 'ログイン' }).click()
   await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
+}
+
+const apiLogPath = () => process.env.KAKEIBO_API_LOG ?? '/tmp/api.log'
+
+/** そのメール宛の [MAIL:LOG] 行（= 発行済みコード）の数を数える。コード取得の起点に使う。 */
+async function countOtpLines(forEmail: string): Promise<number> {
+  try {
+    return readFileSync(apiLogPath(), 'utf-8').split('\n')
+      .filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`)).length
+  } catch {
+    return 0
+  }
+}
+
+/**
+ * OTP コードを API のログから取得する。開発用メールモード (MAIL_MODE=log) では
+ * コードが API ログに [MAIL:LOG] として出力される。
+ * 過去のコードと取り違えないよう、送信前に数えた行数 (alreadySeen) より
+ * 新しく増えた行のコードだけを対象にする。
+ */
+async function fetchOtpCode(forEmail: string, alreadySeen: number): Promise<string> {
+  for (let i = 0; i < 30; i++) {
+    try {
+      const mine = readFileSync(apiLogPath(), 'utf-8').split('\n')
+        .filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`))
+      if (mine.length > alreadySeen) {
+        const m = mine[mine.length - 1].match(/ログインコード: (\d{6})/)
+        if (m) return m[1]
+      }
+    } catch { /* ログ未生成の間は待つ */ }
+    await new Promise(r => setTimeout(r, 500))
+  }
+  throw new Error(`OTP code not found in API log for ${forEmail}`)
 }

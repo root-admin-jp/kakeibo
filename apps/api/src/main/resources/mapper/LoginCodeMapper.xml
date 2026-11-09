@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.LoginCodeMapper">
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.LoginCodeRow"
+          useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+    INSERT INTO login_codes (email, code_hash, display_name, attempts, expires_at)
+    VALUES (#{email}, #{codeHash}, #{displayName}, #{attempts}, #{expiresAt})
+  </insert>
+
+  <select id="findLatestActive" resultType="jp.kakeibo.api.db.LoginCodeRow">
+    SELECT id, email, code_hash, display_name, attempts, expires_at, consumed_at, created_at
+    FROM login_codes
+    WHERE email = #{email} AND consumed_at IS NULL
+    ORDER BY id DESC
+    LIMIT 1
+  </select>
+
+  <update id="consume">
+    UPDATE login_codes SET consumed_at = CURRENT_TIMESTAMP WHERE id = #{id}
+  </update>
+
+  <update id="incrementAttempts">
+    UPDATE login_codes SET attempts = attempts + 1 WHERE id = #{id}
+  </update>
+
+  <update id="consumeAllForEmail">
+    UPDATE login_codes SET consumed_at = CURRENT_TIMESTAMP
+    WHERE email = #{email} AND consumed_at IS NULL
+  </update>
+
+</mapper>

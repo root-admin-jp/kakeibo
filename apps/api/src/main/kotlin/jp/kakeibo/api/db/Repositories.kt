@@ -2,9 +2,16 @@ package jp.kakeibo.api.db
 
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 // Row型は MyBatis のマッピング対象（無引数生成＋プロパティ設定で埋めるため var + デフォルト値）。
-data class UserRow(var id: Long = 0, var email: String = "", var passwordHash: String = "", var displayName: String = "")
+data class UserRow(var id: Long = 0, var email: String = "", var displayName: String = "")
+data class LoginCodeRow(
+    var id: Long = 0, var email: String = "", var codeHash: String = "",
+    var displayName: String? = null, var attempts: Int = 0,
+    var expiresAt: LocalDateTime = LocalDateTime.now(), var consumedAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime = LocalDateTime.now(),
+)
 data class HouseholdRow(var id: Long = 0, var ownerUserId: Long = 0, var name: String = "")
 data class AccountRow(var id: Long = 0, var householdId: Long = 0, var institutionId: Long? = null, var name: String = "", var kind: String = "", var balance: Long = 0)
 data class CategoryRow(var id: Long = 0, var householdId: Long = 0, var parentId: Long? = null, var name: String = "", var sortOrder: Int = 0)
@@ -24,11 +31,28 @@ data class ImportJobRow(
 class UserRepository(private val mapper: UserMapper) {
     fun findByEmail(email: String): UserRow? = mapper.findByEmail(email)
 
-    fun insert(email: String, passwordHash: String, displayName: String): Long {
-        val row = UserRow(email = email, passwordHash = passwordHash, displayName = displayName)
+    fun insert(email: String, displayName: String): Long {
+        val row = UserRow(email = email, displayName = displayName)
         mapper.insert(row)
         return row.id
     }
+}
+
+@Repository
+class LoginCodeRepository(private val mapper: LoginCodeMapper) {
+    fun insert(email: String, codeHash: String, displayName: String?, expiresAt: LocalDateTime): Long {
+        val row = LoginCodeRow(email = email, codeHash = codeHash, displayName = displayName, expiresAt = expiresAt)
+        mapper.insert(row)
+        return row.id
+    }
+
+    fun findLatestActive(email: String): LoginCodeRow? = mapper.findLatestActive(email)
+
+    fun consume(id: Long): Int = mapper.consume(id)
+
+    fun incrementAttempts(id: Long): Int = mapper.incrementAttempts(id)
+
+    fun consumeAllForEmail(email: String): Int = mapper.consumeAllForEmail(email)
 }
 
 @Repository
