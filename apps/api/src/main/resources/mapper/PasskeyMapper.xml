@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.PasskeyMapper">
+  <resultMap id="passkey" type="jp.kakeibo.api.db.PasskeyCredentialRow">
+    <id property="id" column="id"/>
+    <result property="userId" column="user_id"/>
+    <result property="credentialId" column="credential_id"/>
+    <result property="publicKeyCose" column="public_key_cose"/>
+    <result property="signCount" column="sign_count"/>
+    <result property="name" column="name"/>
+    <result property="createdAt" column="created_at"/>
+    <result property="lastUsedAt" column="last_used_at"/>
+  </resultMap>
+
+  <select id="listByUser" resultMap="passkey">
+    SELECT * FROM passkey_credentials WHERE user_id = #{userId} ORDER BY id
+  </select>
+  <select id="findByCredentialId" resultMap="passkey">
+    SELECT * FROM passkey_credentials WHERE credential_id = #{credentialId}
+  </select>
+  <insert id="insert" parameterType="jp.kakeibo.api.db.PasskeyCredentialRow"
+          useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO passkey_credentials (user_id, credential_id, public_key_cose, sign_count, name)
+    VALUES (#{userId}, #{credentialId}, #{publicKeyCose}, #{signCount}, #{name})
+  </insert>
+  <update id="updateUsage">
+    UPDATE passkey_credentials
+    SET sign_count = #{signCount}, last_used_at = #{lastUsedAt}
+    WHERE credential_id = #{credentialId}
+  </update>
+  <delete id="deleteByIdAndUser">
+    DELETE FROM passkey_credentials WHERE id = #{id} AND user_id = #{userId}
+  </delete>
+</mapper>

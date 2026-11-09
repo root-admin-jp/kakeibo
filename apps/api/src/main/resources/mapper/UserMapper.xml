@@ -6,6 +6,10 @@
     SELECT id, email, display_name FROM users WHERE email = #{email}
   </select>
 
+  <select id="findById" resultType="jp.kakeibo.api.db.UserRow">
+    SELECT id, email, display_name FROM users WHERE id = #{id}
+  </select>
+
   <insert id="insert" parameterType="jp.kakeibo.api.db.UserRow"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
     INSERT INTO users (email, display_name) VALUES (#{email}, #{displayName})
