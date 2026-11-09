@@ -55,7 +55,7 @@ data class LoginVerifyRequest(
 /**
  * パスキー (WebAuthn) の登録・一覧・削除と、パスキーでのログイン (ADR-0014、決定O)。
  *
- * 登録はログイン後のみ（/api/passkeys/** は要 JWT）。ログインはメールアドレス不要の
+ * 登録はログイン後のみ（/api/passkeys 配下は要 JWT）。ログインはメールアドレス不要の
  * discoverable credential 前提で、チャレンジは webauthn_challenges に保存し検証時に消費する。
  * 検証は Yubico ライブラリに任せ、成功したら OTP ログインと同じ JWT を発行する。
  */
