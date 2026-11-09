@@ -39,7 +39,7 @@ async function loginWithPasskey() {
     setSession(res.token, res)
     navigateTo('/')
   } catch (e: any) {
-    passkeyError.value = e?.data?.message || 'パスキーでのログインに失敗しました'
+    passkeyError.value = e?.data?.message || e?.message || 'パスキーでのログインに失敗しました'
   } finally { passkeyBusy.value = false }
 }
 

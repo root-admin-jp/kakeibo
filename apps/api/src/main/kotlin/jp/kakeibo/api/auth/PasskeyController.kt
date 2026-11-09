@@ -115,6 +115,7 @@ class PasskeyController(
                     .build()
             )
         } catch (e: Exception) {
+            log.warn("passkey registration failed: {}: {}", e.javaClass.name, e.message)
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "passkey registration failed")
         }
         val name = req.name?.takeIf { it.isNotBlank() } ?: "パスキー"
@@ -168,9 +169,11 @@ class PasskeyController(
                     .build()
             )
         } catch (e: Exception) {
+            log.warn("passkey login failed: {}: {}", e.javaClass.name, e.message)
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "passkey login failed")
         }
         if (!result.isSuccess) {
+            log.warn("passkey login not successful (signature count: {})", result.signatureCount)
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "passkey login failed")
         }
         val userId = YubicoCredentialRepository.userIdOf(result.userHandle)
@@ -200,6 +203,7 @@ class PasskeyController(
     }
 
     companion object {
+        private val log = org.slf4j.LoggerFactory.getLogger(PasskeyController::class.java)
         private const val KIND_REGISTER = "register"
         private const val KIND_LOGIN = "login"
         private const val CHALLENGE_TTL_MINUTES = 5L
