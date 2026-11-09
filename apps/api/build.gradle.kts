@@ -18,7 +18,7 @@ repositories { mavenCentral() }
 // Jackson 2 系 databind 2.21.7 が対象のため、修正版を含む BOM へ引き上げる。
 dependencyManagement {
     imports {
-        mavenBom("tools.jackson:jackson-bom:3.1.8")
+        mavenBom("tools.jackson:jackson-bom:3.2.4")
         mavenBom("com.fasterxml.jackson:jackson-bom:2.22.4")
     }
 }
