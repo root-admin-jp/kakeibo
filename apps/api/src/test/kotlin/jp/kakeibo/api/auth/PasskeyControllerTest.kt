@@ -34,8 +34,8 @@ class PasskeyControllerTest {
     private val challenges = mock<WebAuthnChallengeRepository>()
     private val relyingParty = mock<RelyingParty>()
     private val jwt = JwtService("test-secret-test-secret-test-secret-0123456789", 60)
-    private val controller = PasskeyController(users, households, passkeys, challenges, relyingParty, jwt)
     private val json = ObjectMapper()
+    private val controller = PasskeyController(users, households, passkeys, challenges, relyingParty, jwt, json)
 
     @AfterEach
     fun tearDown() = clearAuth()

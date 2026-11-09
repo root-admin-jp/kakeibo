@@ -67,6 +67,7 @@ class PasskeyController(
     private val challenges: WebAuthnChallengeRepository,
     private val relyingParty: RelyingParty,
     private val jwt: JwtService,
+    private val jsonMapper: tools.jackson.databind.ObjectMapper,
 ) {
 
     // ---- 登録（要ログイン） ----
@@ -154,8 +155,11 @@ class PasskeyController(
             pkOptions.challenge.base64Url, null, KIND_LOGIN,
             request.toJson(), LocalDateTime.now().plusMinutes(CHALLENGE_TTL_MINUTES),
         )
+        // toCredentialsGetJson() は生の WebAuthn API 用に {publicKey: {...}} で包んだ JSON を返す。
+        // SimpleWebAuthn には中身の options そのものが必要なので、publicKey の中身だけを返す
+        val optionsJson = jsonMapper.readTree(pkOptions.toCredentialsGetJson()).get("publicKey")
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON)
-            .body(pkOptions.toCredentialsGetJson())
+            .body(optionsJson.toString())
     }
 
     @PostMapping("/api/auth/passkey/login/verify")
