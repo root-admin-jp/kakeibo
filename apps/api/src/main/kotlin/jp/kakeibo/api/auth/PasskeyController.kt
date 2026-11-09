@@ -178,11 +178,11 @@ class PasskeyController(
         val user = users.findById(userId)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "passkey login failed")
         passkeys.updateUsage(result.credentialId.base64Url, result.signatureCount, LocalDateTime.now())
-        val household = households.findByOwnerUserId(user.id)
+        val householdId = households.findIdByOwner(user.id)
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "passkey login failed")
         return AuthResponse(
-            jwt.issue(user.id, household.id, user.email),
-            user.id, household.id, user.email, user.displayName,
+            jwt.issue(user.id, householdId, user.email),
+            user.id, householdId, user.email, user.displayName,
         )
     }
 
