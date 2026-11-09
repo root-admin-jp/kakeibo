@@ -3,6 +3,7 @@ package jp.kakeibo.api.db
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Param
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * MyBatis Mapper (ADR-0009)。SQL本体は resources の mapper ディレクトリの XML に置く。
@@ -14,7 +15,29 @@ import java.time.LocalDate
 @Mapper
 interface UserMapper {
     fun findByEmail(@Param("email") email: String): UserRow?
+    fun findById(@Param("id") id: Long): UserRow?
     fun insert(row: UserRow): Int
+}
+
+@Mapper
+interface PasskeyMapper {
+    fun listByUser(@Param("userId") userId: Long): List<PasskeyCredentialRow>
+    fun findByCredentialId(@Param("credentialId") credentialId: String): PasskeyCredentialRow?
+    fun insert(row: PasskeyCredentialRow): Int
+    fun updateUsage(
+        @Param("credentialId") credentialId: String,
+        @Param("signCount") signCount: Long,
+        @Param("lastUsedAt") lastUsedAt: LocalDateTime,
+    ): Int
+    fun deleteByIdAndUser(@Param("id") id: Long, @Param("userId") userId: Long): Int
+}
+
+@Mapper
+interface WebAuthnChallengeMapper {
+    fun insert(row: WebAuthnChallengeRow): Int
+    fun findByChallenge(@Param("challenge") challenge: String): WebAuthnChallengeRow?
+    fun deleteByChallenge(@Param("challenge") challenge: String): Int
+    fun deleteExpired(@Param("now") now: LocalDateTime): Int
 }
 
 @Mapper

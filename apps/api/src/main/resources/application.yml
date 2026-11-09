@@ -42,3 +42,8 @@ kakeibo:
   otp:
     # コード再送の最小間隔（秒）。E2E などテスト環境でのみ 0 にして短縮する
     resend-interval-seconds: ${OTP_RESEND_INTERVAL_SECONDS:60}
+  webauthn:
+    # パスキー (WebAuthn) の RP 設定 (ADR-0014)。本番では自ドメインに合わせる
+    rp-id: ${WEBAUTHN_RP_ID:localhost}
+    rp-name: ${WEBAUTHN_RP_NAME:Kakeibo}
+    origins: ${WEBAUTHN_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
