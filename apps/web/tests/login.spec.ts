@@ -6,6 +6,14 @@ import LoginPage from '../app/pages/login.vue'
 const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))
 mockNuxtImport('useApi', () => () => ({ api: apiMock }))
 
+// パスキー対応ブラウザとして振る舞わせる
+const { startAuthenticationMock } = vi.hoisted(() => ({ startAuthenticationMock: vi.fn() }))
+vi.mock('@simplewebauthn/browser', () => ({
+  browserSupportsWebAuthn: () => true,
+  startAuthentication: startAuthenticationMock,
+  startRegistration: vi.fn(),
+}))
+
 async function mountLogin() {
   return await mountSuspended(LoginPage)
 }
@@ -84,5 +92,40 @@ describe('ログイン画面', () => {
     })
     expect(localStorage.getItem('kakeibo-token')).toBeNull()
     expect(wrapper.find('input[placeholder="6桁のコード"]').exists()).toBe(false)
+  })
+
+  it('パスキー対応ブラウザではパスキーログインボタンが出る', async () => {
+    const wrapper = await mountLogin()
+    await vi.waitFor(() => {
+      expect(wrapper.findAll('button').some(b => b.text() === 'パスキーでログイン')).toBe(true)
+    })
+  })
+
+  it('パスキーでログインすると options → 認証器 → verify の順に進みセッションが保存される', async () => {
+    apiMock
+      .mockResolvedValueOnce({ challenge: 'ch-1', rpId: 'localhost' })
+      .mockResolvedValueOnce({ token: 'pk-token', userId: 1, householdId: 2, email: 'a@example.com', displayName: '花子' })
+    startAuthenticationMock.mockResolvedValue({ id: 'cred-1', type: 'public-key' })
+    const wrapper = await mountLogin()
+    const btn = await vi.waitFor(() => {
+      const b = wrapper.findAll('button').find(x => x.text() === 'パスキーでログイン')
+      if (!b) throw new Error('button not yet')
+      return b
+    })
+    await btn.trigger('click')
+    await vi.waitFor(() => {
+      expect(localStorage.getItem('kakeibo-token')).toBe('pk-token')
+    })
+    expect(apiMock).toHaveBeenNthCalledWith(1, '/api/auth/passkey/login/options', expect.objectContaining({ method: 'POST' }))
+    expect(startAuthenticationMock).toHaveBeenCalledWith(
+      expect.objectContaining({ optionsJSON: expect.objectContaining({ challenge: 'ch-1' }) }),
+    )
+    expect(apiMock).toHaveBeenNthCalledWith(
+      2, '/api/auth/passkey/login/verify',
+      expect.objectContaining({
+        method: 'POST',
+        body: { challenge: 'ch-1', response: { id: 'cred-1', type: 'public-key' } },
+      }),
+    )
   })
 })

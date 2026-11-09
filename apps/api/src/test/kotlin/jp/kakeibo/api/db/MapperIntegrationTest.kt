@@ -55,6 +55,8 @@ class MapperIntegrationTest {
     @Autowired lateinit var transactions: TransactionRepository
     @Autowired lateinit var institutions: InstitutionRepository
     @Autowired lateinit var importJobs: ImportJobRepository
+    @Autowired lateinit var passkeys: PasskeyRepository
+    @Autowired lateinit var webauthnChallenges: WebAuthnChallengeRepository
 
     private var seq = 0
     private fun newHousehold(): Long {
@@ -174,5 +176,39 @@ class MapperIntegrationTest {
 
         val jobId = importJobs.insert(hid, null, "done", 12, null)
         assertTrue(jobId > 0)
+    }
+
+    @Test
+    fun `passkey credential roundtrip`() {
+        val uid = users.insert("passkey-${System.nanoTime()}@example.com", "パスキー")
+        val id = passkeys.insert(uid, "cred-${System.nanoTime()}", "cose-key", 0, "MacBook")
+        assertTrue(id > 0)
+        val listed = passkeys.listByUser(uid)
+        assertEquals(1, listed.size)
+        assertEquals("MacBook", listed[0].name)
+        assertEquals(id, passkeys.findByCredentialId(listed[0].credentialId)?.id)
+
+        val usedAt = java.time.LocalDateTime.of(2026, 11, 9, 12, 0)
+        assertEquals(1, passkeys.updateUsage(listed[0].credentialId, 5, usedAt))
+        val after = passkeys.findByCredentialId(listed[0].credentialId)!!
+        assertEquals(5L, after.signCount)
+        assertEquals(usedAt, after.lastUsedAt)
+
+        // 他人のパスキーは削除できない
+        assertEquals(0, passkeys.deleteByIdAndUser(id, uid + 999))
+        assertEquals(1, passkeys.deleteByIdAndUser(id, uid))
+        assertTrue(passkeys.listByUser(uid).isEmpty())
+    }
+
+    @Test
+    fun `webauthn challenge roundtrip`() {
+        val uid = users.insert("challenge-${System.nanoTime()}@example.com", "チャレンジ")
+        val challenge = "ch-${System.nanoTime()}"
+        webauthnChallenges.insert(challenge, uid, "register", "{}", java.time.LocalDateTime.now().plusMinutes(5))
+        val found = webauthnChallenges.findByChallenge(challenge)
+        assertEquals("register", found?.kind)
+        assertEquals(uid, found?.userId)
+        assertEquals(1, webauthnChallenges.deleteByChallenge(challenge))
+        assertEquals(null, webauthnChallenges.findByChallenge(challenge))
     }
 }

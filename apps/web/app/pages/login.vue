@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { browserSupportsWebAuthn, startAuthentication } from '@simplewebauthn/browser'
 definePageMeta({ layout: false })
 const { api } = useApi()
 const { setSession } = useAuth()
@@ -20,6 +21,28 @@ async function requestCode() {
   } finally { busy.value = false }
 }
 
+// パスキー (WebAuthn) ログイン。対応ブラウザでのみボタンを出す。
+const passkeySupported = ref(false)
+const passkeyError = ref('')
+const passkeyBusy = ref(false)
+onMounted(() => { passkeySupported.value = browserSupportsWebAuthn() })
+
+async function loginWithPasskey() {
+  passkeyBusy.value = true; passkeyError.value = ''
+  try {
+    const options: any = await api('/api/auth/passkey/login/options', { method: 'POST' })
+    const assertion = await startAuthentication({ optionsJSON: options })
+    const res: any = await api('/api/auth/passkey/login/verify', {
+      method: 'POST',
+      body: { challenge: options.challenge, response: assertion },
+    })
+    setSession(res.token, res)
+    navigateTo('/')
+  } catch (e: any) {
+    passkeyError.value = e?.data?.message || 'パスキーでのログインに失敗しました'
+  } finally { passkeyBusy.value = false }
+}
+
 async function verifyCode() {
   busy.value = true; error.value = ''
   try {
@@ -35,7 +58,7 @@ async function verifyCode() {
 }
 </script>
 <template>
-  <div class="min-vh-100 d-flex align-items-center justify-content-center">
+  <div class="min-vh-100 d-flex flex-column align-items-center justify-content-center gap-3">
     <form v-if="step === 'email'" class="card shadow w-100 login-card card-body vstack gap-3 p-4" @submit.prevent="requestCode">
       <h1 class="fs-5 fw-bold text-center mb-0">Kakeibo</h1>
       <p class="small text-body-secondary mb-0">メールアドレスに6桁のログインコードを送ります。新規登録も同じ手順です。</p>
@@ -52,5 +75,9 @@ async function verifyCode() {
       <button :disabled="busy" class="btn btn-primary w-100">ログイン</button>
       <button type="button" class="btn btn-link btn-sm" @click="step = 'email'">メールアドレスを変える</button>
     </form>
+    <div v-if="step === 'email' && passkeySupported" class="card shadow w-100 login-card card-body vstack gap-2 p-4">
+      <button type="button" :disabled="passkeyBusy" class="btn btn-outline-secondary w-100" @click="loginWithPasskey">パスキーでログイン</button>
+      <p v-if="passkeyError" class="text-danger small mb-0">{{ passkeyError }}</p>
+    </div>
   </div>
 </template>
