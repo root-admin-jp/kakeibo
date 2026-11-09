@@ -12,6 +12,16 @@ data class LoginCodeRow(
     var expiresAt: LocalDateTime = LocalDateTime.now(), var consumedAt: LocalDateTime? = null,
     var createdAt: LocalDateTime = LocalDateTime.now(),
 )
+data class PasskeyCredentialRow(
+    var id: Long = 0, var userId: Long = 0, var credentialId: String = "",
+    var publicKeyCose: String = "", var signCount: Long = 0, var name: String = "",
+    var createdAt: LocalDateTime = LocalDateTime.now(), var lastUsedAt: LocalDateTime? = null,
+)
+data class WebAuthnChallengeRow(
+    var id: Long = 0, var challenge: String = "", var userId: Long? = null,
+    var kind: String = "", var requestJson: String = "",
+    var expiresAt: LocalDateTime = LocalDateTime.now(), var createdAt: LocalDateTime = LocalDateTime.now(),
+)
 data class HouseholdRow(var id: Long = 0, var ownerUserId: Long = 0, var name: String = "")
 data class AccountRow(var id: Long = 0, var householdId: Long = 0, var institutionId: Long? = null, var name: String = "", var kind: String = "", var balance: Long = 0)
 data class CategoryRow(var id: Long = 0, var householdId: Long = 0, var parentId: Long? = null, var name: String = "", var sortOrder: Int = 0)
@@ -31,11 +41,51 @@ data class ImportJobRow(
 class UserRepository(private val mapper: UserMapper) {
     fun findByEmail(email: String): UserRow? = mapper.findByEmail(email)
 
+    fun findById(id: Long): UserRow? = mapper.findById(id)
+
     fun insert(email: String, displayName: String): Long {
         val row = UserRow(email = email, displayName = displayName)
         mapper.insert(row)
         return row.id
     }
+}
+
+@Repository
+class PasskeyRepository(private val mapper: PasskeyMapper) {
+    fun listByUser(userId: Long): List<PasskeyCredentialRow> = mapper.listByUser(userId)
+
+    fun findByCredentialId(credentialId: String): PasskeyCredentialRow? = mapper.findByCredentialId(credentialId)
+
+    fun insert(userId: Long, credentialId: String, publicKeyCose: String, signCount: Long, name: String): Long {
+        val row = PasskeyCredentialRow(
+            userId = userId, credentialId = credentialId,
+            publicKeyCose = publicKeyCose, signCount = signCount, name = name,
+        )
+        mapper.insert(row)
+        return row.id
+    }
+
+    fun updateUsage(credentialId: String, signCount: Long, lastUsedAt: LocalDateTime): Int =
+        mapper.updateUsage(credentialId, signCount, lastUsedAt)
+
+    fun deleteByIdAndUser(id: Long, userId: Long): Int = mapper.deleteByIdAndUser(id, userId)
+}
+
+@Repository
+class WebAuthnChallengeRepository(private val mapper: WebAuthnChallengeMapper) {
+    fun insert(challenge: String, userId: Long?, kind: String, requestJson: String, expiresAt: LocalDateTime): Long {
+        mapper.deleteExpired(LocalDateTime.now())
+        val row = WebAuthnChallengeRow(
+            challenge = challenge, userId = userId, kind = kind,
+            requestJson = requestJson, expiresAt = expiresAt,
+        )
+        mapper.insert(row)
+        return row.id
+    }
+
+    fun findByChallenge(challenge: String): WebAuthnChallengeRow? = mapper.findByChallenge(challenge)
+
+    fun deleteByChallenge(challenge: String): Int = mapper.deleteByChallenge(challenge)
 }
 
 @Repository

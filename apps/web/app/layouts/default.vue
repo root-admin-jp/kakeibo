@@ -12,6 +12,7 @@ onMounted(restore)
           <NuxtLink to="/transactions" class="nav-link px-2">取引</NuxtLink>
           <NuxtLink to="/accounts" class="nav-link px-2">口座</NuxtLink>
           <NuxtLink to="/categories" class="nav-link px-2">カテゴリ</NuxtLink>
+          <NuxtLink to="/passkeys" class="nav-link px-2">パスキー</NuxtLink>
         </nav>
         <div class="ms-auto d-flex align-items-center gap-3 small">
           <span v-if="user" class="text-body-secondary">{{ user.displayName }}</span>

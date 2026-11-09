@@ -11,6 +11,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
     "bootstrap": "^5.3.8",
     "nuxt": "^4.6.4",
     "vue": "^3.5.0",

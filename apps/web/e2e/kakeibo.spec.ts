@@ -110,6 +110,33 @@ test.describe.serial('Kakeibo E2E', () => {
     expect(content).toContain(memo) // 画面から追加した支出
     expect(content).toContain(csvMemo) // CSV取り込みした支出
   })
+
+  test('パスキーを登録すると、次回はパスキーだけでログインできる', async ({ page, context }) => {
+    await login(page)
+    // Chromium の仮想認証器（discoverable credential + ユーザー確認あり）
+    const cdp = await context.newCDPSession(page)
+    await cdp.send('WebAuthn.enable')
+    const { authenticatorId } = await cdp.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2', transport: 'internal',
+        hasResidentKey: true, hasUserVerification: true, isUserVerified: true,
+        automaticPresenceSimulation: true,
+      },
+    })
+    try {
+      await page.goto('/passkeys')
+      await page.getByPlaceholder('パスキーの名前').fill('E2Eパスキー')
+      await page.getByRole('button', { name: 'パスキーを追加' }).click()
+      await expect(page.getByText('E2Eパスキー')).toBeVisible()
+
+      await page.getByRole('button', { name: 'ログアウト' }).click()
+      await expect(page).toHaveURL(/\/login$/)
+      await page.getByRole('button', { name: 'パスキーでログイン' }).click()
+      await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
+    } finally {
+      await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId }).catch(() => {})
+    }
+  })
 })
 
 /** 登録済みユーザーでログインし、ダッシュボード到達まで待つ（各テストは新規ページなので毎回必要）。 */

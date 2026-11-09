@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.kakeibo.api.db.WebAuthnChallengeMapper">
+  <resultMap id="challenge" type="jp.kakeibo.api.db.WebAuthnChallengeRow">
+    <id property="id" column="id"/>
+    <result property="challenge" column="challenge"/>
+    <result property="userId" column="user_id"/>
+    <result property="kind" column="kind"/>
+    <result property="requestJson" column="request_json"/>
+    <result property="expiresAt" column="expires_at"/>
+    <result property="createdAt" column="created_at"/>
+  </resultMap>
+
+  <insert id="insert" parameterType="jp.kakeibo.api.db.WebAuthnChallengeRow"
+          useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO webauthn_challenges (challenge, user_id, kind, request_json, expires_at)
+    VALUES (#{challenge}, #{userId}, #{kind}, #{requestJson}, #{expiresAt})
+  </insert>
+  <select id="findByChallenge" resultMap="challenge">
+    SELECT * FROM webauthn_challenges WHERE challenge = #{challenge}
+  </select>
+  <delete id="deleteByChallenge">
+    DELETE FROM webauthn_challenges WHERE challenge = #{challenge}
+  </delete>
+  <delete id="deleteExpired">
+    DELETE FROM webauthn_challenges WHERE expires_at &lt;= #{now}
+  </delete>
+</mapper>
