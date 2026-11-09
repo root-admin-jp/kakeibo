@@ -19,7 +19,7 @@ repositories { mavenCentral() }
 dependencyManagement {
     imports {
         mavenBom("tools.jackson:jackson-bom:3.1.8")
-        mavenBom("com.fasterxml.jackson:jackson-bom:2.21.8")
+        mavenBom("com.fasterxml.jackson:jackson-bom:2.22.4")
     }
 }
 dependencies {
