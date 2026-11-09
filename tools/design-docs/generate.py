@@ -60,8 +60,33 @@ def split_top_level(body: str):
     return parts
 
 
-def parse_ddl(sql: str):
-    tables = {}
+def parse_column(item: str):
+    """カラム定義1件（`name TYPE ...`）を Column に変換する。CREATE TABLE 内と ADD COLUMN で共用。"""
+    cm = re.match(r"(\w+)\s+(.+)", item, re.S)
+    if not cm:
+        return None
+    col_name, rest = cm.group(1), cm.group(2).strip()
+    # 型: ENUM(...) / VARCHAR(255) / BIGINT UNSIGNED / TIMESTAMP 等を先頭から取る
+    tm = re.match(r"([A-Z]+(?:\s+UNSIGNED)?(?:\s*\([^)]*\))?)", rest, re.I)
+    # 型名は原文どおり（ENUM値の大小文字を保持）。空白だけ正規化する
+    type_ = re.sub(r"\s+", " ", tm.group(1)) if tm else rest.split()[0]
+    tail = rest[len(tm.group(1)):] if tm else ""
+    nullable = "NOT NULL" not in tail.upper()
+    dm = re.search(r"DEFAULT\s+([^\s,]+(?:\s*\([^)]*\))?)", tail, re.I)
+    default = dm.group(1) if dm else "-"
+    if "DEFAULT CURRENT_TIMESTAMP ON UPDATE" in tail.upper():
+        default = "CURRENT_TIMESTAMP (更新時も)"
+    return Column(col_name, type_, nullable, default,
+                  "AUTO_INCREMENT" in tail.upper(), tail.strip())
+
+
+def apply_ddl(tables, masters, sql: str):
+    """1マイグレーション分の SQL を実効スキーマへ反映する。
+
+    CREATE TABLE の追加に加え、ALTER TABLE の DROP COLUMN / ADD COLUMN も適用する。
+    マイグレーションを版順に全て適用することで、V2 以降の変更（テーブル追加・列削除など）
+    を含めた現在のスキーマが得られる。
+    """
     for m in re.finditer(r"CREATE TABLE IF NOT EXISTS (\w+) \((.*?)\) ENGINE=", sql, re.S):
         name, body = m.group(1), m.group(2)
         t = Table(name)
@@ -81,28 +106,40 @@ def parse_ddl(sql: str):
                 if fm:
                     t.fks.append((fm.group(1), fm.group(2), fm.group(3), fm.group(4)))
             else:
-                cm = re.match(r"(\w+)\s+(.+)", item, re.S)
-                if not cm:
-                    continue
-                col_name, rest = cm.group(1), cm.group(2).strip()
-                # 型: ENUM(...) / VARCHAR(255) / BIGINT UNSIGNED / TIMESTAMP 等を先頭から取る
-                tm = re.match(r"([A-Z]+(?:\s+UNSIGNED)?(?:\s*\([^)]*\))?)", rest, re.I)
-                # 型名は原文どおり（ENUM値の大小文字を保持）。空白だけ正規化する
-                type_ = re.sub(r"\s+", " ", tm.group(1)) if tm else rest.split()[0]
-                tail = rest[len(tm.group(1)):] if tm else ""
-                nullable = "NOT NULL" not in tail.upper()
-                dm = re.search(r"DEFAULT\s+([^\s,]+(?:\s*\([^)]*\))?)", tail, re.I)
-                default = dm.group(1) if dm else "-"
-                if "DEFAULT CURRENT_TIMESTAMP ON UPDATE" in tail.upper():
-                    default = "CURRENT_TIMESTAMP (更新時も)"
-                t.columns.append(Column(col_name, type_, nullable, default,
-                                        "AUTO_INCREMENT" in tail.upper(), tail.strip()))
+                col = parse_column(item)
+                if col:
+                    t.columns.append(col)
         tables[name] = t
     # financial_institutions の初期データ
-    masters = []
     im = re.search(r"INSERT INTO financial_institutions \(code, name, kind\) VALUES(.*?)ON DUPLICATE", sql, re.S)
     if im:
-        masters = re.findall(r"\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)", im.group(1))
+        masters.extend(re.findall(r"\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)", im.group(1)))
+    # ALTER TABLE（DROP COLUMN / ADD COLUMN のみ対応。その他の変更は無視する）
+    for am in re.finditer(r"ALTER TABLE (\w+)\s+(.*?);", sql, re.S):
+        t = tables.get(am.group(1))
+        if t is None:
+            continue
+        for action in split_top_level(am.group(2)):
+            dm = re.match(r"DROP COLUMN (\w+)", action, re.I)
+            if dm:
+                col = dm.group(1)
+                t.columns = [c for c in t.columns if c.name != col]
+                t.pk = [c for c in t.pk if c != col]
+                t.uniques = [(k, [c for c in cols if c != col]) for k, cols in t.uniques]
+                t.indexes = [(k, [c for c in cols if c != col]) for k, cols in t.indexes]
+                t.fks = [fk for fk in t.fks if fk[1] != col]
+                continue
+            adm = re.match(r"ADD COLUMN (.+)", action, re.I | re.S)
+            if adm:
+                col = parse_column(adm.group(1).strip())
+                if col:
+                    t.columns.append(col)
+    return tables, masters
+
+
+def parse_ddl(sql: str):
+    tables, masters = {}, []
+    apply_ddl(tables, masters, sql)
     return tables, masters
 
 
@@ -181,7 +218,7 @@ def mermaid_type(type_: str) -> str:
 
 def gen_table_definition(tables, masters):
     lines = ["# テーブル定義書", "",
-             "生成元: `db/migration/V1__init.sql`（Flyway DDL）。金額は JPY の整数。金融機関の認証情報は保存しない。",
+             "生成元: `db/migration/V*.sql`（Flyway マイグレーションを版順に全て適用した実効スキーマ）。金額は JPY の整数。金融機関の認証情報は保存しない。",
              "テナント分離: 全業務テーブルは `household_id` で分離し、1テナント = 1オーナーユーザー（ADR-0007）。", "",
              f"テーブル数: {len(tables)}", ""]
     lines.append("| テーブル | カラム数 | 主キー | 備考 |")
@@ -192,6 +229,9 @@ def gen_table_definition(tables, masters):
         "categories": "カテゴリ（2階層: parent_id で親子）", "transactions": "取引（収入/支出/振替、論理削除）",
         "budgets": "予算（カテゴリ×月）", "import_jobs": "CSV取込ジョブ履歴",
         "institution_connections": "金融機関連携（外部参照のみ保持）",
+        "login_codes": "OTPログインコード（ハッシュのみ保持、ワンタイム）",
+        "passkey_credentials": "パスキー資格情報（公開鍵のみ保持）",
+        "webauthn_challenges": "WebAuthnチャレンジ（ワンタイム、短時間で失効）",
     }
     for name, t in tables.items():
         lines.append(f"| [{name}](#{name}) | {len(t.columns)} | {', '.join(t.pk) or '-'} | {remarks.get(name, '')} |")
@@ -226,7 +266,7 @@ def gen_table_definition(tables, masters):
 
 
 def gen_er(tables):
-    lines = ["# ER図", "", "生成元: `db/migration/V1__init.sql` の外部キー制約。", "", "```mermaid", "erDiagram"]
+    lines = ["# ER図", "", "生成元: `db/migration/V*.sql`（全マイグレーション適用後）の外部キー制約。", "", "```mermaid", "erDiagram"]
     for name, t in tables.items():
         lines.append(f"    {name} {{")
         fk_cols = {fk[1] for fk in t.fks}
@@ -305,8 +345,15 @@ def main():
     (out / "api").mkdir(parents=True)
     (out / "screens").mkdir(parents=True)
 
-    sql = (src / "db/migration/V1__init.sql").read_text(encoding="utf-8")
-    tables, masters = parse_ddl(sql)
+    # Flyway マイグレーションを版順に全て適用した実効スキーマを使う
+    # （V1 だけだと V2 以降のテーブル追加・列削除が設計書に反映されない）
+    tables, masters = {}, []
+    migration_files = sorted(
+        (src / "db/migration").glob("V*.sql"),
+        key=lambda p: int(re.match(r"V(\d+)", p.name).group(1)),
+    )
+    for f in migration_files:
+        apply_ddl(tables, masters, f.read_text(encoding="utf-8"))
     if not tables:
         print("DDLからテーブルを解析できませんでした", file=sys.stderr)
         return 1
