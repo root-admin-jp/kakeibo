@@ -9,6 +9,18 @@ spring:
     enabled: true
     locations: filesystem:../../db/migration
     baseline-on-migrate: true
+  # SMTP 接続（MAIL_MODE=smtp のときだけ使用。送信サービスに依存しない共通設定、ADR-0014）
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:25}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:false}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:false}
 # DBアクセスは MyBatis (ADR-0009)。SQLは src/main/resources/mapper/*.xml に置く。
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -23,3 +35,10 @@ springdoc:
 kakeibo:
   jwt-secret: ${JWT_SECRET:}
   jwt-expiration-minutes: 1440
+  mail:
+    # log = コードをサーバーログに出す開発用モード / smtp = 実際にメール送信する (ADR-0014)
+    mode: ${MAIL_MODE:log}
+    from: ${MAIL_FROM:no-reply@example.com}
+  otp:
+    # コード再送の最小間隔（秒）。E2E などテスト環境でのみ 0 にして短縮する
+    resend-interval-seconds: ${OTP_RESEND_INTERVAL_SECONDS:60}

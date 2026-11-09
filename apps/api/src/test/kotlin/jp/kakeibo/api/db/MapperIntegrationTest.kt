@@ -59,13 +59,13 @@ class MapperIntegrationTest {
     private var seq = 0
     private fun newHousehold(): Long {
         seq++
-        val uid = users.insert("mapper-test-$seq-${System.nanoTime()}@example.com", "hash", "テスト")
+        val uid = users.insert("mapper-test-$seq-${System.nanoTime()}@example.com", "テスト")
         return households.insert(uid, "テスト家計")
     }
 
     @Test
     fun `household roundtrip and unknown owner`() {
-        val uid = users.insert("owner-${System.nanoTime()}@example.com", "hash123", "山田")
+        val uid = users.insert("owner-${System.nanoTime()}@example.com", "山田")
         assertTrue(uid > 0)
         val hid = households.insert(uid, "山田の家計")
         assertTrue(hid > 0)
@@ -77,11 +77,10 @@ class MapperIntegrationTest {
     @Test
     fun `inserted user can be found by email`() {
         val email = "findme-${System.nanoTime()}@example.com"
-        val uid = users.insert(email, "hash123", "探す")
+        val uid = users.insert(email, "探す")
         val found = users.findByEmail(email)
         assertNotNull(found)
         assertEquals(uid, found.id)
-        assertEquals("hash123", found.passwordHash)
         assertEquals("探す", found.displayName)
     }
 

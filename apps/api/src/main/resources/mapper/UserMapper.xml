@@ -3,12 +3,12 @@
 <mapper namespace="jp.kakeibo.api.db.UserMapper">
 
   <select id="findByEmail" resultType="jp.kakeibo.api.db.UserRow">
-    SELECT id, email, password_hash, display_name FROM users WHERE email = #{email}
+    SELECT id, email, display_name FROM users WHERE email = #{email}
   </select>
 
   <insert id="insert" parameterType="jp.kakeibo.api.db.UserRow"
           useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-    INSERT INTO users (email, password_hash, display_name) VALUES (#{email}, #{passwordHash}, #{displayName})
+    INSERT INTO users (email, display_name) VALUES (#{email}, #{displayName})
   </insert>
 
 </mapper>

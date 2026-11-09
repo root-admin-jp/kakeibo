@@ -5,7 +5,6 @@ import { readFileSync } from 'node:fs'
 // 再ログイン後もデータが見えることまでを通しで確認する。
 const stamp = Date.now()
 const email = `e2e-${stamp}@example.com`
-const password = 'password123'
 const displayName = 'E2E太郎'
 const accountName = `E2E銀行口座${stamp}`
 const memo = `E2Eスーパー買い物${stamp}`
@@ -24,11 +23,11 @@ test.describe.serial('Kakeibo E2E', () => {
 
   test('新規登録するとダッシュボードが表示される', async ({ page }) => {
     await page.goto('/login')
-    await page.getByRole('button', { name: '新規登録' }).click()
-    await page.getByPlaceholder('表示名').fill(displayName)
+    await page.getByPlaceholder('表示名（新規登録のときだけ）').fill(displayName)
     await page.getByPlaceholder('メールアドレス').fill(email)
-    await page.getByPlaceholder('パスワード（8文字以上）').fill(password)
-    await page.getByRole('button', { name: '登録する' }).click()
+    await page.getByRole('button', { name: 'コードを送信' }).click()
+    await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email))
+    await page.getByRole('button', { name: 'ログイン' }).click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
     await expect(page.getByText(displayName)).toBeVisible() // ヘッダーのユーザー名
@@ -114,7 +113,27 @@ test.describe.serial('Kakeibo E2E', () => {
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login')
   await page.getByPlaceholder('メールアドレス').fill(email)
-  await page.getByPlaceholder('パスワード（8文字以上）').fill(password)
-  await page.locator('form > button').click()
+  await page.getByRole('button', { name: 'コードを送信' }).click()
+  await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email))
+  await page.getByRole('button', { name: 'ログイン' }).click()
   await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
+}
+
+/**
+ * OTP コードを API のログから取得する。開発用メールモード (MAIL_MODE=log) では
+ * コードが API ログに [MAIL:LOG] として出力されるため、その最新行を読む。
+ * ログのパスは KAKEIBO_API_LOG で上書きできる（CI では e2e.yml の /tmp/api.log）。
+ */
+async function fetchOtpCode(forEmail: string): Promise<string> {
+  const logPath = process.env.KAKEIBO_API_LOG ?? '/tmp/api.log'
+  for (let i = 0; i < 30; i++) {
+    try {
+      const lines = readFileSync(logPath, 'utf-8').split('\n')
+      const mine = lines.filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`))
+      const m = mine.length ? mine[mine.length - 1].match(/ログインコード: (\d{6})/) : null
+      if (m) return m[1]
+    } catch { /* ログ未生成の間は待つ */ }
+    await new Promise(r => setTimeout(r, 500))
+  }
+  throw new Error(`OTP code not found in API log for ${forEmail}`)
 }

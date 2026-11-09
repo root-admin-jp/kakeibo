@@ -18,6 +18,18 @@ interface UserMapper {
 }
 
 @Mapper
+interface LoginCodeMapper {
+    fun insert(row: LoginCodeRow): Int
+
+    /** 未消費の最新コード（有効期限切れ・試行上限も含む。判定は呼び出し側で行う）。 */
+    fun findLatestActive(@Param("email") email: String): LoginCodeRow?
+
+    fun consume(@Param("id") id: Long): Int
+    fun incrementAttempts(@Param("id") id: Long): Int
+    fun consumeAllForEmail(@Param("email") email: String): Int
+}
+
+@Mapper
 interface HouseholdMapper {
     fun insert(row: HouseholdRow): Int
     fun findIdByOwner(@Param("ownerUserId") ownerUserId: Long): Long?

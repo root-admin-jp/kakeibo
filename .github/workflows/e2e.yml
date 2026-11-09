@@ -48,6 +48,8 @@ jobs:
           DB_PASSWORD: kakeibo
           JWT_SECRET: e2e-secret-e2e-secret-e2e-secret-0123456789
           API_PORT: 8080
+          MAIL_MODE: log
+          OTP_RESEND_INTERVAL_SECONDS: "0"
         run: |
           nohup gradle bootRun --console=plain > /tmp/api.log 2>&1 &
           for i in $(seq 1 90); do
