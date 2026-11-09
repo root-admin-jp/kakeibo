@@ -25,8 +25,9 @@ test.describe.serial('Kakeibo E2E', () => {
     await page.goto('/login')
     await page.getByPlaceholder('表示名（新規登録のときだけ）').fill(displayName)
     await page.getByPlaceholder('メールアドレス').fill(email)
+    const seen = await countOtpLines(email)
     await page.getByRole('button', { name: 'コードを送信' }).click()
-    await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email))
+    await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email, seen))
     await page.getByRole('button', { name: 'ログイン' }).click()
     await expect(page).toHaveURL(/\/$/)
     await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
@@ -113,25 +114,40 @@ test.describe.serial('Kakeibo E2E', () => {
 async function login(page: import('@playwright/test').Page) {
   await page.goto('/login')
   await page.getByPlaceholder('メールアドレス').fill(email)
+  const seen = await countOtpLines(email)
   await page.getByRole('button', { name: 'コードを送信' }).click()
-  await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email))
+  await page.getByPlaceholder('6桁のコード').fill(await fetchOtpCode(email, seen))
   await page.getByRole('button', { name: 'ログイン' }).click()
   await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible()
 }
 
+const apiLogPath = () => process.env.KAKEIBO_API_LOG ?? '/tmp/api.log'
+
+/** そのメール宛の [MAIL:LOG] 行（= 発行済みコード）の数を数える。コード取得の起点に使う。 */
+async function countOtpLines(forEmail: string): Promise<number> {
+  try {
+    return readFileSync(apiLogPath(), 'utf-8').split('\n')
+      .filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`)).length
+  } catch {
+    return 0
+  }
+}
+
 /**
  * OTP コードを API のログから取得する。開発用メールモード (MAIL_MODE=log) では
- * コードが API ログに [MAIL:LOG] として出力されるため、その最新行を読む。
- * ログのパスは KAKEIBO_API_LOG で上書きできる（CI では e2e.yml の /tmp/api.log）。
+ * コードが API ログに [MAIL:LOG] として出力される。
+ * 過去のコードと取り違えないよう、送信前に数えた行数 (alreadySeen) より
+ * 新しく増えた行のコードだけを対象にする。
  */
-async function fetchOtpCode(forEmail: string): Promise<string> {
-  const logPath = process.env.KAKEIBO_API_LOG ?? '/tmp/api.log'
+async function fetchOtpCode(forEmail: string, alreadySeen: number): Promise<string> {
   for (let i = 0; i < 30; i++) {
     try {
-      const lines = readFileSync(logPath, 'utf-8').split('\n')
-      const mine = lines.filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`))
-      const m = mine.length ? mine[mine.length - 1].match(/ログインコード: (\d{6})/) : null
-      if (m) return m[1]
+      const mine = readFileSync(apiLogPath(), 'utf-8').split('\n')
+        .filter(l => l.includes('[MAIL:LOG]') && l.includes(`to=${forEmail}`))
+      if (mine.length > alreadySeen) {
+        const m = mine[mine.length - 1].match(/ログインコード: (\d{6})/)
+        if (m) return m[1]
+      }
     } catch { /* ログ未生成の間は待つ */ }
     await new Promise(r => setTimeout(r, 500))
   }
