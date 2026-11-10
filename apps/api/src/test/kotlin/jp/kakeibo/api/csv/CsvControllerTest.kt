@@ -58,6 +58,9 @@ class CsvControllerTest {
     private fun csvFile(content: String) =
         MockMultipartFile("file", "test.csv", "text/csv", content.toByteArray(Charsets.UTF_8))
 
+    private fun csvFile(content: String, charsetName: String) =
+        MockMultipartFile("file", "test.csv", "text/csv", content.toByteArray(java.nio.charset.Charset.forName(charsetName)))
+
     @Test
     fun `import parses MF format rows and skips bad rows`() {
         val csv = """
@@ -121,6 +124,32 @@ class CsvControllerTest {
         assertEquals("adjustment", inserted[0][4])
         assertEquals(-1500L, inserted[0][5])
         assertEquals(null, inserted[0][3]) // 残高調整はカテゴリを持たない
+    }
+
+    @Test
+    fun `import decodes Shift_JIS MF format csv`() {
+        val csv = """
+            日付,収支種別,金額,大項目,中項目,内容
+            2026-11-01,支出,1200,食費,食料品,スーパーで買い物
+            2026-11-02,収入,300000,給与,給料,11月給料
+        """.trimIndent()
+        val result = controller.import(1, null, csvFile(csv, "windows-31j"))
+        assertEquals(2, result.imported)
+        assertEquals(0, result.skipped)
+        assertEquals(11L, inserted[0][3]) // カテゴリ名（日本語）が化けずに解決できる
+        assertEquals("スーパーで買い物", inserted[0][7])
+        assertEquals("11月給料", inserted[1][7])
+    }
+
+    @Test
+    fun `import decodes BOM prefixed UTF-8 csv`() {
+        val csv = "日付,収支種別,金額,大項目,中項目,内容\n2026-11-01,支出,1200,食費,食料品,スーパー\n"
+        val bom = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+        val file = MockMultipartFile("file", "test.csv", "text/csv", bom + csv.toByteArray(Charsets.UTF_8))
+        val result = controller.import(1, null, file)
+        assertEquals(1, result.imported)
+        assertEquals(0, result.skipped)
+        assertEquals("スーパー", inserted[0][7])
     }
 
     @Test

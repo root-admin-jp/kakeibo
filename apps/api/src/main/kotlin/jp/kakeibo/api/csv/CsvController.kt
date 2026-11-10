@@ -18,16 +18,17 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
-import java.io.InputStreamReader
+import java.io.StringReader
 import java.io.StringWriter
-import java.nio.charset.StandardCharsets
-import java.time.LocalDate
 import java.time.YearMonth
 
 data class ImportResult(val imported: Int, val skipped: Int, val errors: List<String>)
 
 /**
- * 汎用/MF形式CSV: 日付, 収支種別（収入/振替/それ以外は支出）, 金額, 大項目, 中項目, 内容
+ * CSV取り込み（Phase 2 Step 0）。
+ * 文字コードは [CsvTextDecoder] が UTF-8（BOM含む）／Shift_JIS(CP932) を自動判定する。
+ * 形式は [CsvImportParsers] が先頭行のヘッダー署名で選ぶ。現状は汎用/MF形式のみ:
+ * 日付, 収支種別（収入/振替/それ以外は支出）, 金額, 大項目, 中項目, 内容
  * 既存の MF(SSNB) CSV Importer の列仕様と互換にする（要件定義 §3.3）。
  * 拡張として収支種別「残高調整」（ADR-0015）も扱う: 金額は符号付きで往復でき、カテゴリは持たない。
  */
@@ -88,27 +89,23 @@ class CsvController(
         }
         var imported = 0; var skipped = 0; val errors = mutableListOf<String>()
         try {
-            val reader = CSVReaderBuilder(InputStreamReader(file.inputStream, StandardCharsets.UTF_8)).build()
+            val reader = CSVReaderBuilder(StringReader(CsvTextDecoder.decode(file.bytes))).build()
             var lineNo = 0
+            var parser: CsvImportParser? = null
             for (row in reader) {
                 lineNo++
                 if (row.isEmpty() || row.all { it.isBlank() }) continue
-                if (lineNo == 1 && row[0].trim() == "日付") continue // ヘッダー
+                val active = parser ?: CsvImportParsers.select(row).also { parser = it }
+                if (lineNo == 1 && active.isHeader(row)) continue // ヘッダー
                 try {
-                    val date = LocalDate.parse(row[0].trim().replace("/", "-"))
-                    val type = when (row[1].trim()) { "収入" -> "income"; "振替" -> "transfer"; "残高調整" -> "adjustment"; else -> "expense" }
-                    val amount = row[2].trim().replace(",", "").replace("円", "").toLong()
-                    // 残高調整だけは符号付き（マイナス可・ゼロ不可）、他は正の金額のみ
-                    if (if (type == "adjustment") amount == 0L else amount <= 0) { skipped++; errors.add("${lineNo}行目: 金額が不正です"); continue }
-                    if (type == "transfer" && toAccountId == null) {
+                    val parsed = active.parse(row)
+                    if (parsed.type == "transfer" && toAccountId == null) {
                         skipped++; errors.add("${lineNo}行目: 振替には振替先口座(toAccountId)が必要です"); continue
                     }
-                    val top = row.getOrNull(3)?.trim() ?: ""
-                    val child = row.getOrNull(4)?.trim() ?: ""
-                    val memo = row.getOrNull(5)?.trim()?.takeIf { it.isNotBlank() }
                     transactions.insert(
-                        user.householdId, accountId, if (type == "transfer") toAccountId else null,
-                        if (type == "adjustment") null else resolveCategory(top, child), type, amount, date, memo,
+                        user.householdId, accountId, if (parsed.type == "transfer") toAccountId else null,
+                        if (parsed.type == "adjustment") null else resolveCategory(parsed.topCategory, parsed.childCategory),
+                        parsed.type, parsed.amount, parsed.date, parsed.memo,
                     )
                     imported++
                 } catch (e: Exception) {
