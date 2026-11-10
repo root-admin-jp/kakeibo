@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+ignore:
+  SNYK-JS-BRACES-19963945:
+    - '*':
+        reason: >-
+          No fixed release of braces exists for CVE-2026-93687 (all versions <= 3.0.3 are
+          affected; upstream fix PRs micromatch/braces#72 and #75 are unmerged, and
+          micromatch 4.0.8 / nitropack 2.13.6 still require braces ^3.0.3). In Kakeibo,
+          braces is only exercised at build/dev time via nitropack > globby > micromatch
+          when expanding glob patterns taken from this repository's own configuration;
+          no user input reaches it and it is not on the runtime request path, so the
+          practical risk is low. Accepted by decision Q in docs/decisions.md.
+          Remove this ignore as soon as a fixed braces version is released.
+        expires: 2027-02-08T00:00:00.000Z
+        created: 2026-11-10T00:00:00.000Z
+patch: {}
