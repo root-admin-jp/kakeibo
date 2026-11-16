@@ -21,7 +21,7 @@
     "ioredis": "^6.0.0"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^4.3.4",
+    "@nuxt/test-utils": "^4.4.0",
     "@playwright/test": "^1.65.0",
     "@vue/test-utils": "^2.5.1",
     "happy-dom": "^21.0.4",
