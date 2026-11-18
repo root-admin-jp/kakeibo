@@ -47,3 +47,7 @@ kakeibo:
     rp-id: ${WEBAUTHN_RP_ID:localhost}
     rp-name: ${WEBAUTHN_RP_NAME:Kakeibo}
     origins: ${WEBAUTHN_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+  cors:
+    # CORS で許可するオリジン（パターン、カンマ区切り、決定R）。既定は localhost のみ。
+    # Tailscale 名など localhost 以外から使う場合は、デプロイ側で環境変数に追加する（例: http://<Tailscale名>:*）
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
