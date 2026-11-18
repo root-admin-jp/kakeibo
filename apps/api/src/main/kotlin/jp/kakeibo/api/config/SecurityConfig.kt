@@ -1,6 +1,7 @@
 package jp.kakeibo.api.config
 
 import jp.kakeibo.api.security.JwtAuthenticationFilter
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -12,7 +13,10 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
-class SecurityConfig(private val jwtFilter: JwtAuthenticationFilter) {
+class SecurityConfig(
+    private val jwtFilter: JwtAuthenticationFilter,
+    @Value("\${kakeibo.cors.allowed-origin-patterns}") private val allowedOriginPatternsRaw: String,
+) {
 
     // パスワード認証は撤去済み (ADR-0014)。認証は OTP / パスキーで検証し、セッションは JWT で保持する。
     @Bean
@@ -32,7 +36,9 @@ class SecurityConfig(private val jwtFilter: JwtAuthenticationFilter) {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("http://localhost:*", "http://127.0.0.1:*")
+            // 許可オリジンは環境変数で差し替え可能（決定R、application.yml の kakeibo.cors）。
+            // 既定は localhost のみ。Tailscale 名など localhost 以外のオリジンから使う場合はデプロイ側で追加する。
+            allowedOriginPatterns = allowedOriginPatternsRaw.split(",").map { it.trim() }.filter { it.isNotEmpty() }
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             allowCredentials = true
