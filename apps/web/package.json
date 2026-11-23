@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.4.0",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@vue/test-utils": "^2.5.1",
     "happy-dom": "^21.0.4",
     "typescript": "^7.0.2",
